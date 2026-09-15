@@ -11,6 +11,9 @@
   .cal-month-headerrow {
     display: flex;
     height: 36px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
     border-bottom: 1px solid var(--cal-border);
     background-color: var(--cal-header-bg);
     flex-shrink: 0;
@@ -121,7 +124,8 @@
     font-weight: 600;
   }
 
-  /* Overlay grid stacking this row's event segments, sitting above the day cells. */
+  /* Overlay grid stacking this row's event segments, sitting above the day cells.
+     Top padding must match `DAY_HEAD_HEIGHT_PX` in MonthView.tsx so chips clear the day number. */
   .cal-month-segments {
     position: absolute;
     inset: 0;
@@ -129,7 +133,7 @@
     grid-auto-rows: 20px;
     row-gap: 2px;
     column-gap: 2px;
-    padding: 20px 4px 2px;
+    padding: 28px 4px 2px;
     box-sizing: border-box;
     pointer-events: none;
   }
@@ -198,6 +202,7 @@
 
   .cal-month-more {
     pointer-events: auto;
+    height: 18px;
     background: none;
     border: none;
     padding: 0 4px;
@@ -205,11 +210,46 @@
     font: inherit;
     font-size: 12px;
     font-weight: 500;
+    line-height: 18px;
     color: var(--cal-accent);
     cursor: pointer;
   }
 
   .cal-month-more:hover {
     text-decoration: underline;
+  }
+
+  /* --- Responsive: compact (≤640px, driven by MonthView's `compact` prop) -- */
+
+  .cal-month-compact .cal-month-weeknum-spacer,
+  .cal-month-compact .cal-month-weeknum {
+    display: none;
+  }
+
+  .cal-month-compact .cal-month-daynum {
+    font-size: 12px;
+  }
+
+  /* Chips collapse to plain colour dots laid out inline; text is hidden
+     rather than removed so the accessible name (aria-label) is unaffected. */
+  .cal-month-compact .cal-month-event {
+    display: inline-flex;
+    width: 8px;
+    height: 8px;
+    min-width: 0;
+    margin: 0 1px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--cal-event-color);
+    font-size: 0;
+    line-height: 0;
+    overflow: hidden;
+  }
+
+  .cal-month-compact .cal-month-event-dot,
+  .cal-month-compact .cal-month-event-time,
+  .cal-month-compact .cal-month-event-name {
+    display: none;
   }
 }

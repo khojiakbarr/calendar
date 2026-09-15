@@ -17,6 +17,8 @@ import { measureGrid, minuteAt, slotRect } from "./useGridPointer"
 
 /** Where the grid parks its scroll: past the empty night, before the working day. */
 const PREFERRED_SCROLL_HOUR = 7
+/** Half an hour label plus a little air, in pixels. */
+const HOUR_LABEL_CLEARANCE_PX = 12
 
 /** What {@link TimeGrid} draws. */
 export interface TimeGridProps<T> {
@@ -79,7 +81,7 @@ export function TimeGrid<T>({ instance, labels, onEventOpen, onCreateRequest, on
     }
   }
 
-  const { ghost, dragging, handlers } = useGridDrag<T>({ instance, bodyRef, buildDraft, onCreateRequest })
+  const { ghost, dragging, handlers, wasDragged } = useGridDrag<T>({ instance, bodyRef, buildDraft, onCreateRequest })
   // Both slots: this element is the "view" root (like every other view's root)
   // and, more specifically, the "timeGrid" the day/week views share.
   const viewSlotClass = useSlotClass("view")
@@ -91,7 +93,10 @@ export function TimeGrid<T>({ instance, labels, onEventOpen, onCreateRequest, on
     const targetHour = Math.max(PREFERRED_SCROLL_HOUR, settings.dayStartHour)
     // Pixels per hour is derived from the rendered height rather than read from
     // `--cal-hour-height`, so a theme that rescales the token still lands on 7:00.
-    scroller.scrollTop = (scroller.scrollHeight / hourCount) * (targetHour - settings.dayStartHour)
+    // Stop a little short of the hour line so its label, which is centred on
+    // the line, is not cut in half at the top of the viewport.
+    const hourTop = (scroller.scrollHeight / hourCount) * (targetHour - settings.dayStartHour)
+    scroller.scrollTop = Math.max(0, hourTop - HOUR_LABEL_CLEARANCE_PX)
   }, [instance.view, settings.dayStartHour, hourCount])
 
   const handleDaySelect = (day: Date): void => {
@@ -174,6 +179,7 @@ export function TimeGrid<T>({ instance, labels, onEventOpen, onCreateRequest, on
                     dayStartMinutes={dayStartMinutes}
                     onOpen={onEventOpen}
                     onHover={onEventHover}
+                    wasDragged={wasDragged}
                   />
                 ))}
 

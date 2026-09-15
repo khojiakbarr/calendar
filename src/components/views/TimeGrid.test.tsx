@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { addDays, startOfDay } from "../../core/date"
 import type { CalendarInstance } from "../../instance"
@@ -154,6 +155,15 @@ describe("TimeGrid", () => {
     expect(must(container, ".cal-timegrid-body").contains(pill)).toBe(false)
   })
 
+  it("opens an all-day event on click", () => {
+    const allDay = makeEvent({ id: "a1", name: "Conference", start: new Date(2022, 2, 15), end: new Date(2022, 2, 17), allDay: true })
+    const { onEventOpen } = renderGrid(makeInstance({ events: [allDay] }))
+
+    fireEvent.click(screen.getByText("Conference"))
+
+    expect(onEventOpen).toHaveBeenCalledWith(allDay, expect.any(HTMLElement))
+  })
+
   it("collapses all-day events past the third row into a +N more drill-in", () => {
     const spans = [1, 2, 3, 4].map((n) =>
       makeEvent({ id: `a${n}`, name: `Span ${n}`, start: new Date(2022, 2, 15), end: new Date(2022, 2, 16), allDay: true }),
@@ -167,13 +177,39 @@ describe("TimeGrid", () => {
     expect(instance.setView).toHaveBeenCalledWith("day")
   })
 
-  it("opens an event on double-click", () => {
+  it("opens an event on click", () => {
     const event = makeEvent({ id: "e1" })
     const { onEventOpen } = renderGrid(makeInstance({ events: [event] }))
 
-    fireEvent.dblClick(screen.getByText("Breakfast"))
+    fireEvent.click(screen.getByText("Breakfast"))
 
     expect(onEventOpen).toHaveBeenCalledWith(event, expect.any(HTMLElement))
+  })
+
+  it("also opens an event on double-click, only once", async () => {
+    const event = makeEvent({ id: "e1" })
+    const user = userEvent.setup()
+    const { onEventOpen } = renderGrid(makeInstance({ events: [event] }))
+
+    await user.dblClick(screen.getByText("Breakfast"))
+
+    expect(onEventOpen).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not open an event when a click follows a drag that moved it", () => {
+    const event = makeEvent({ id: "e1" })
+    const { container, onEventOpen } = renderGrid(makeInstance({ events: [event] }))
+    const chip = must(container, '[data-event-id="e1"]')
+    const body = must(container, ".cal-timegrid-body")
+
+    fireEvent.pointerDown(chip, { pointerId: 1, button: 0, clientX: GUTTER_WIDTH + 2 * COLUMN_WIDTH + 10, clientY: 540 })
+    fireEvent.pointerMove(body, { pointerId: 1, clientX: GUTTER_WIDTH + 2 * COLUMN_WIDTH + 10, clientY: 600 })
+    fireEvent.pointerUp(body, { pointerId: 1, clientX: GUTTER_WIDTH + 2 * COLUMN_WIDTH + 10, clientY: 600 })
+    // A real browser still fires `click` after a mouseup-following-a-drag; jsdom does not synthesise
+    // one from the pointer sequence above, so the drag's own aftermath has to be simulated explicitly.
+    fireEvent.click(chip)
+
+    expect(onEventOpen).not.toHaveBeenCalled()
   })
 
   it("opens an event when Enter is pressed on its chip", () => {

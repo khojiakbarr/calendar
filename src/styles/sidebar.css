@@ -13,6 +13,10 @@
     background-color: var(--cal-sidebar-bg);
   }
 
+  .cal-sidebar-header {
+    display: none;
+  }
+
   .cal-sidebar-filter {
     display: flex;
     margin: 16px 0;
@@ -143,5 +147,44 @@
   .cal-resource-name {
     font-size: 13px;
     color: var(--cal-fg);
+  }
+
+  /* --- Responsive: overlay drawer -----------------------------------------
+     ≤900px the sidebar leaves the flex flow and floats above .cal-main, with
+     a scrim behind it and a close button revealed in its header. */
+
+  .cal-sidebar-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 19;
+    background-color: color-mix(in srgb, var(--cal-fg) 35%, transparent);
+  }
+
+  @keyframes cal-sidebar-in {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .cal-sidebar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: min(300px, 85vw);
+      z-index: 20;
+      box-shadow: var(--cal-shadow);
+      animation: cal-sidebar-in 200ms ease-out;
+    }
+
+    .cal-sidebar-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+    }
   }
 }

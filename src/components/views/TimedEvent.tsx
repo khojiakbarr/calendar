@@ -33,6 +33,13 @@ export interface EventChipOptions<T> {
   locale: string
   onOpen(event: CalendarEvent<T>, anchor: HTMLElement): void
   onHover(event: CalendarEvent<T> | null, anchor: HTMLElement | null): void
+  /**
+   * Reports whether the pointer session that just ended (or is still active)
+   * crossed the drag threshold — a click right after a drag-release must not
+   * also open the editor. Only the time grid's chips can be dragged; the
+   * all-day row has no drag of its own, so it omits this and every click opens.
+   */
+  wasDragged?(): boolean
 }
 
 /** The accessibility and interaction props shared by timed chips and all-day pills. */
@@ -41,6 +48,7 @@ export interface EventChipProps {
   tabIndex: 0
   "data-event-id": string
   "aria-label": string
+  onClick(event: ReactMouseEvent<HTMLElement>): void
   onDoubleClick(event: ReactMouseEvent<HTMLElement>): void
   onKeyDown(event: ReactKeyboardEvent<HTMLElement>): void
   onMouseEnter(event: ReactMouseEvent<HTMLElement>): void
@@ -52,8 +60,15 @@ export interface EventChipProps {
  * the all-day row so both open, describe and hover identically.
  *
  * A chip is a `div` with `role="button"` rather than a real `<button>` because
- * it is also a drag handle: a button would swallow the pointer gesture and add
- * a click activation the grid does not want (opening takes a double-click).
+ * it is also a drag handle: a button would swallow the pointer gesture a move
+ * or resize needs.
+ *
+ * Opening is click-driven: a plain click (no drag beforehand) opens the
+ * editor. A native double-click fires `click` (detail 1) then `click` (detail
+ * 2) then `dblclick` — the first click already opens, so the second click is
+ * ignored by its `detail`, and `onDoubleClick` only stops the event reaching
+ * the grid's own double-click-to-create handler underneath, rather than
+ * opening a second time.
  *
  * @param options - The event, the label bundle, the locale, and the callbacks.
  * @returns Props to spread onto the chip element.
@@ -62,7 +77,7 @@ export interface EventChipProps {
  * <div className="cal-event" {...eventChipProps({ event, labels, locale, onOpen, onHover })} />
  */
 export function eventChipProps<T>(options: EventChipOptions<T>): EventChipProps {
-  const { event, labels, locale, onOpen, onHover } = options
+  const { event, labels, locale, onOpen, onHover, wasDragged } = options
   return {
     role: "button",
     tabIndex: 0,
@@ -71,10 +86,14 @@ export function eventChipProps<T>(options: EventChipOptions<T>): EventChipProps 
       name: event.name || labels.untitled,
       ...describeRange(event, locale),
     }),
+    onClick: (mouse) => {
+      if (mouse.detail > 1) return // the second click of a double-click; the first already opened
+      if (wasDragged?.()) return
+      onOpen(event, mouse.currentTarget)
+    },
     onDoubleClick: (mouse) => {
       // Stop the grid's own double-click, which would otherwise create an event underneath.
       mouse.stopPropagation()
-      onOpen(event, mouse.currentTarget)
     },
     onKeyDown: (key) => {
       if (key.key !== "Enter" && key.key !== " ") return
@@ -123,6 +142,8 @@ export interface TimedEventProps<T> {
   dayStartMinutes: number
   onOpen(event: CalendarEvent<T>, anchor: HTMLElement): void
   onHover(event: CalendarEvent<T> | null, anchor: HTMLElement | null): void
+  /** From `useGridDrag` — whether the gesture that just ended on this grid was a drag. */
+  wasDragged(): boolean
 }
 
 /**
@@ -135,7 +156,7 @@ export interface TimedEventProps<T> {
  * @param props - The packed block plus the instance it belongs to.
  * @returns The positioned chip.
  */
-export function TimedEvent<T>({ block, instance, labels, dayStartMinutes, onOpen, onHover }: TimedEventProps<T>) {
+export function TimedEvent<T>({ block, instance, labels, dayStartMinutes, onOpen, onHover, wasDragged }: TimedEventProps<T>) {
   const { event } = block
   const isReadOnly = event.readOnly === true
   const isPending = instance.pendingIds.has(event.id)
@@ -162,7 +183,7 @@ export function TimedEvent<T>({ block, instance, labels, dayStartMinutes, onOpen
         eventSlotClass,
       )}
       style={style}
-      {...eventChipProps({ event, labels, locale: instance.settings.locale, onOpen, onHover })}
+      {...eventChipProps({ event, labels, locale: instance.settings.locale, onOpen, onHover, wasDragged })}
     >
       <span className="cal-event-time">{formatTime(event.start, instance.settings.locale)}</span>
       <span className="cal-event-name">{event.name || labels.untitled}</span>

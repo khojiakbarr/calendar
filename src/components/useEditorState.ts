@@ -2,8 +2,6 @@ import { useCallback, useState } from "react"
 import { addMinutes, isSameDay, minutesOfDay, withMinutesOfDay } from "../core/date"
 import type { CalendarInstance } from "../instance"
 import type { CalendarEvent, EventDraft } from "../types"
-import type { AnchorRect } from "./Popover"
-import { rectOf } from "./views/anchor"
 
 /** Minutes in a full day — caps a ceiling-snapped start at the following midnight. */
 const MINUTES_PER_DAY = 24 * 60
@@ -11,22 +9,26 @@ const MINUTES_PER_DAY = 24 * 60
 /** Fallback start hour for a new event when `instance.date` is not today. */
 const DEFAULT_START_HOUR = 9
 
-/** The editor popover's state: closed (`null`), or open for a create or an edit. */
+/** The editor dialog's state: closed (`null`), or open for a create or an edit. */
 export interface EditorState<T> {
   mode: "create" | "edit"
   initial: EventDraft<T>
   /** Set only in edit mode — the event being changed. */
   eventId?: string
-  anchor: AnchorRect | null
 }
 
 /** What {@link useEditorState} exposes to the shell. */
 export interface EditorController<T> {
   editor: EditorState<T> | null
-  /** Opens the editor for an existing event, unless editing is off or the event forbids it. */
-  openEdit(event: CalendarEvent<T>, el: HTMLElement): void
+  /**
+   * Opens the editor for an existing event, unless editing is off or the
+   * event forbids it. The dialog it opens in is unanchored — a modal or
+   * sheet, not a popover — so callers may pass the triggering element for
+   * type-compatibility with `onEventOpen`-shaped callbacks, but it is not used.
+   */
+  openEdit(event: CalendarEvent<T>): void
   /** Opens the editor for a new event, unless creating is off. */
-  openCreate(draft: EventDraft<T>, anchor: AnchorRect | null): void
+  openCreate(draft: EventDraft<T>): void
   /** Saves the open editor's draft (create or update, depending on `editor.mode`) and closes it. */
   save(draft: EventDraft<T>): void
   /** Removes the event being edited and closes the editor. */
@@ -59,18 +61,18 @@ export function useEditorState<T>(instance: CalendarInstance<T>): EditorControll
   const [editor, setEditor] = useState<EditorState<T> | null>(null)
 
   const openEdit = useCallback(
-    (event: CalendarEvent<T>, el: HTMLElement) => {
+    (event: CalendarEvent<T>) => {
       if (!instance.flags.edit || event.readOnly === true) return
       const { id, ...initial } = event
-      setEditor({ mode: "edit", initial, eventId: id, anchor: rectOf(el) })
+      setEditor({ mode: "edit", initial, eventId: id })
     },
     [instance.flags.edit],
   )
 
   const openCreate = useCallback(
-    (draft: EventDraft<T>, anchor: AnchorRect | null) => {
+    (draft: EventDraft<T>) => {
       if (!instance.flags.create) return
-      setEditor({ mode: "create", initial: draft, anchor })
+      setEditor({ mode: "create", initial: draft })
     },
     [instance.flags.create],
   )

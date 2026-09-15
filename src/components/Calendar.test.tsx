@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import { addDays } from "../core/date"
 import { formatTitle } from "../core/format"
@@ -147,15 +148,27 @@ describe("Calendar", () => {
     expect(screen.getByRole("grid", { name: defaultLabels.month })).toBeInTheDocument()
   })
 
-  it("opens the editor prefilled when an event chip is double-clicked", async () => {
+  it("opens the editor prefilled when an event chip is clicked", async () => {
     const { source, loads } = fakeSource()
     render(<Harness source={source} />)
     await act(async () => nth(loads, 0).resolve([makeEvent()]))
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: /Standup/ }))
+    fireEvent.click(screen.getByRole("button", { name: /Standup/ }))
 
     expect(screen.getByRole("dialog")).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 3, name: defaultLabels.editorEditTitle })).toBeInTheDocument()
+    expect(screen.getByLabelText(defaultLabels.name)).toHaveValue("Standup")
+  })
+
+  it("also opens the editor on a double-click, without reopening a second time", async () => {
+    const { source, loads } = fakeSource()
+    const user = userEvent.setup()
+    render(<Harness source={source} />)
+    await act(async () => nth(loads, 0).resolve([makeEvent()]))
+
+    await user.dblClick(screen.getByRole("button", { name: /Standup/ }))
+
+    expect(screen.getAllByRole("dialog")).toHaveLength(1)
     expect(screen.getByLabelText(defaultLabels.name)).toHaveValue("Standup")
   })
 
@@ -164,7 +177,7 @@ describe("Calendar", () => {
     render(<Harness source={source} />)
     await act(async () => nth(loads, 0).resolve([makeEvent()]))
 
-    fireEvent.doubleClick(screen.getByRole("button", { name: /Standup/ }))
+    fireEvent.click(screen.getByRole("button", { name: /Standup/ }))
     fireEvent.change(screen.getByLabelText(defaultLabels.name), { target: { value: "Planning" } })
     fireEvent.click(screen.getByRole("button", { name: defaultLabels.save }))
 

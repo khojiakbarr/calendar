@@ -34,6 +34,8 @@ export interface GridDrag<T> {
   ghost: GridGhost<T> | null
   dragging: boolean
   handlers: GridDragHandlers
+  /** Whether the pointer session that just ended (or is active) crossed the drag threshold — a chip's click handler calls this to skip opening the editor right after a drag. */
+  wasDragged(): boolean
 }
 
 /** Which gesture a press on `target` starts. */
@@ -81,16 +83,22 @@ function capturePointer(body: HTMLElement, pointerId: number): void {
  *
  * @param options - The calendar instance, the body element, and how to turn a
  *   finished create gesture into a draft.
- * @returns The ghost to draw, whether a drag is in flight, and the body's pointer props.
+ * @returns The ghost to draw, whether a drag is in flight, the body's pointer
+ *   props, and `wasDragged()` — so a chip's click handler can skip opening
+ *   the editor right after a drag-release, the same guard `useMonthDrag`
+ *   offers month-view chips.
  *
  * @example
- * const { ghost, dragging, handlers } = useGridDrag({ instance, bodyRef, buildDraft, onCreateRequest })
+ * const { ghost, dragging, handlers, wasDragged } = useGridDrag({ instance, bodyRef, buildDraft, onCreateRequest })
  */
 export function useGridDrag<T>(options: UseGridDragOptions<T>): GridDrag<T> {
   const { instance, bodyRef, buildDraft, onCreateRequest } = options
   const sessionRef = useRef<DragSession<T> | null>(null)
   const ghostRef = useRef<GridGhost<T> | null>(null)
   const [ghost, setGhostState] = useState<GridGhost<T> | null>(null)
+  // Mirrors useMonthDrag's own draggedRef: a ref (not state) because a click
+  // right after pointerup has to read it synchronously, before any render.
+  const draggedRef = useRef(false)
 
   // The ref mirrors the state because `pointerup` has to read the final ghost
   // synchronously — the render that would deliver it has not happened yet.
@@ -149,6 +157,7 @@ export function useGridDrag<T>(options: UseGridDragOptions<T>): GridDrag<T> {
     const event = chip ? (instance.events.find((candidate) => candidate.id === chip.dataset.eventId) ?? null) : null
     if (!isGestureAllowed(instance, gesture, event)) return
 
+    draggedRef.current = false
     const metrics = measureGrid(body, column, columnIndex, instance.days.length, instance.settings)
     const startMinutes = event ? minutesOfDay(event.start) : 0
     sessionRef.current = {
@@ -174,6 +183,7 @@ export function useGridDrag<T>(options: UseGridDragOptions<T>): GridDrag<T> {
       Math.abs(pointer.clientX - session.startX) >= GESTURE_THRESHOLD_PX ||
       Math.abs(pointer.clientY - session.startY) >= GESTURE_THRESHOLD_PX
     if (!ghostRef.current && !movedFar) return // still within click tolerance
+    draggedRef.current = true
     setGhost(ghostFor(session, pointer.clientX, pointer.clientY))
   }
 
@@ -185,6 +195,8 @@ export function useGridDrag<T>(options: UseGridDragOptions<T>): GridDrag<T> {
     if (final) commit(session, final) // no ghost means the press never became a drag
   }
 
+  const wasDragged = useCallback(() => draggedRef.current, [])
+
   return {
     ghost,
     dragging: ghost !== null,
@@ -194,5 +206,6 @@ export function useGridDrag<T>(options: UseGridDragOptions<T>): GridDrag<T> {
       onPointerUp: handlePointerUp,
       onPointerCancel: endSession,
     },
+    wasDragged,
   }
 }

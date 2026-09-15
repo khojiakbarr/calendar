@@ -202,6 +202,48 @@ describe("MonthView", () => {
     })
   })
 
+  it("renders event chips as dots and marks the root compact when the compact prop is set", () => {
+    const timed = makeEvent({ start: new Date(2022, 2, 9, 9, 0), end: new Date(2022, 2, 9, 10, 0), name: "Standup" })
+    const { container } = render(<MonthView {...makeProps(makeInstance({ events: [timed] }), { compact: true })} />)
+
+    expect(container.querySelector(".cal-month")).toHaveClass("cal-month-compact")
+    // The chip itself is still in the DOM (compact styling is CSS-only) —
+    // this just proves compact mode was actually switched on for it to sit under.
+    expect(screen.getByRole("button", { name: /Standup/ })).toHaveClass("cal-month-event")
+  })
+
+  it("does not mark the root compact when the compact prop is false", () => {
+    const { container } = render(<MonthView {...makeProps(makeInstance(), { compact: false })} />)
+    expect(container.querySelector(".cal-month")).not.toHaveClass("cal-month-compact")
+  })
+
+  it("opens the day view when a cell is clicked in compact mode", () => {
+    const instance = makeInstance()
+    const { container } = render(<MonthView {...makeProps(instance, { compact: true })} />)
+
+    const cell = container.querySelector('[data-day="2022-03-09"]')
+    expect(cell).not.toBeNull()
+    fireEvent.click(cell as Element)
+
+    expect(instance.setDate).toHaveBeenCalledTimes(1)
+    const calledWith = (instance.setDate as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as Date
+    expect(calledWith.getFullYear()).toBe(2022)
+    expect(calledWith.getMonth()).toBe(2)
+    expect(calledWith.getDate()).toBe(9)
+    expect(instance.setView).toHaveBeenCalledWith("day")
+  })
+
+  it("does not open the day view from a cell click outside compact mode", () => {
+    const instance = makeInstance()
+    const { container } = render(<MonthView {...makeProps(instance, { compact: false })} />)
+
+    const cell = container.querySelector('[data-day="2022-03-09"]')
+    fireEvent.click(cell as Element)
+
+    expect(instance.setDate).not.toHaveBeenCalled()
+    expect(instance.setView).not.toHaveBeenCalled()
+  })
+
   it("does not drag a read-only event", () => {
     const event = makeEvent({ start: new Date(2022, 2, 9, 9, 0), end: new Date(2022, 2, 9, 10, 0), name: "Locked", readOnly: true })
     const instance = makeInstance({ events: [event] })

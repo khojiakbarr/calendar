@@ -320,4 +320,35 @@
     border-radius: 50%;
     background-color: var(--cal-now-line);
   }
+
+  /* --- Responsive -----------------------------------------------------------
+     Only the media-query rules below belong to this pass: overriding
+     --cal-gutter-width here (rather than in tokens.css) reaches every place
+     that already reads the token, including TimeGrid.tsx's inline style. */
+
+  @media (max-width: 640px) {
+    .cal-root {
+      --cal-gutter-width: 44px;
+    }
+
+    .cal-timegrid-hour-label {
+      font-size: 10px;
+    }
+
+    .cal-timegrid-header {
+      height: 60px;
+    }
+
+    .cal-day-header-number {
+      font-size: 18px;
+    }
+
+    .cal-event-timed {
+      padding: 2px 4px;
+    }
+
+    .cal-event-name {
+      font-size: 11px;
+    }
+  }
 }

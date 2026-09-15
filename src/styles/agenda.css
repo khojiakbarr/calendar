@@ -113,4 +113,27 @@
     text-align: center;
     color: var(--cal-muted-fg);
   }
+
+  /* --- Responsive ----------------------------------------------------------- */
+
+  @media (max-width: 640px) {
+    .cal-agenda-day {
+      padding: 12px;
+    }
+
+    .cal-agenda-day-number {
+      font-size: 22px;
+    }
+
+    .cal-agenda-time {
+      min-width: 84px;
+    }
+
+    .cal-agenda-row {
+      height: auto;
+      min-height: 36px;
+      padding: 6px 10px;
+      flex-wrap: wrap;
+    }
+  }
 }

@@ -1,9 +1,16 @@
 @layer calendar {
-  /* EventEditor — create/edit form rendered inside a Popover */
+  /* EventEditor — create/edit form rendered inside a Dialog (modal or sheet) */
   .cal-editor {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    padding: 20px;
+  }
+
+  /* The sheet trades the modal's even padding for a touch-friendlier top and
+     a little extra room at the bottom, past the drag handle and the safe area. */
+  .cal-dialog-sheet .cal-editor {
+    padding: 16px 16px 24px;
   }
 
   .cal-editor-header {
@@ -98,6 +105,23 @@
 
   .cal-editor-delete {
     margin-right: auto;
+  }
+
+  /* Sheet layout: full-width, stacked buttons — Save first (thumb-friendly,
+     top of the stack), then Cancel, then Delete. Source order already
+     matches (see EventEditor), so this is purely visual. */
+  .cal-editor-actions-sheet {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .cal-editor-actions-sheet .cal-btn {
+    width: 100%;
+  }
+
+  .cal-editor-actions-sheet .cal-editor-delete {
+    margin-right: 0;
   }
 
   /* All-day switch: a visually hidden checkbox driving a sliding pill track. */

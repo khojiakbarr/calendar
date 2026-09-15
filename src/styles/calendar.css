@@ -28,4 +28,11 @@
   .cal-error-message {
     font-size: var(--cal-font-size);
   }
+
+  /* tokens.css doesn't position .cal-body; it needs to be the containing
+     block for the sidebar drawer's absolutely-positioned scrim so the scrim
+     covers exactly the body area, not the toolbar above it. */
+  .cal-body {
+    position: relative;
+  }
 }

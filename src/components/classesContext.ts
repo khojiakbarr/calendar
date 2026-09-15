@@ -7,7 +7,8 @@ import { createContext, useContext } from "react"
  * around the views (toolbar, sidebar and its two sections), each view's own
  * root, the two grid sub-parts that are shared across views (`dayHeader`,
  * `allDayRow`, `timeGrid`), every event chip regardless of which view drew
- * it, and the three floating cards. Kept in sync with the `classes` table in
+ * it, and the four floating cards (`popover`, `dialog`, `editor`, `tooltip`).
+ * Kept in sync with the `classes` table in
  * README.md's "Styling" section — that table is the contract, this type is
  * its enforcement.
  */
@@ -27,6 +28,7 @@ export type CalendarSlot =
   | "year"
   | "agenda"
   | "popover"
+  | "dialog"
   | "editor"
   | "tooltip"
 

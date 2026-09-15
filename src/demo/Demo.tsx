@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Calendar } from "../components/Calendar"
+import { useMediaQuery } from "../components/useMediaQuery"
 import { localStoragePreferences } from "../core/persistence"
 import type { EventSourceAction } from "../types"
 import { useCalendar } from "../useCalendar"
@@ -7,6 +8,9 @@ import { createMockServer, demoResources, type ServerLogEntry } from "./mockServ
 
 /** How many rows the "Server log" rail keeps — enough to see a pattern, not a scrollback. */
 const MAX_LOG_ENTRIES = 30
+
+/** Below this width the server log hides behind a toggle instead of sitting beside the calendar. */
+const NARROW_QUERY = "(max-width: 900px)"
 
 /** The three latencies the demo lets you compare a slow network against. */
 const LATENCY_OPTIONS_MS = [0, 350, 1500] as const
@@ -28,12 +32,23 @@ function formatClock(date: Date): string {
  * the network tab.
  */
 export function Demo() {
+  const isNarrow = useMediaQuery(NARROW_QUERY)
   const [themeChoice, setThemeChoice] = useState<ThemeChoice>("system")
   const [latencyMs, setLatencyMs] = useState(350)
   const [failNextChecked, setFailNextChecked] = useState(false)
   const [log, setLog] = useState<ServerLogEntry[]>([])
   const [lastError, setLastError] = useState<string | null>(null)
   const [logOpen, setLogOpen] = useState(true)
+
+  // Below 900px the log rail would otherwise eat most of the viewport on
+  // first paint; close it the first time the layout goes narrow and leave
+  // every later toggle to the visitor.
+  const closedForNarrowRef = useRef(false)
+  useEffect(() => {
+    if (!isNarrow || closedForNarrowRef.current) return
+    closedForNarrowRef.current = true
+    setLogOpen(false)
+  }, [isNarrow])
 
   // A ref because `createMockServer` reads it synchronously, once per call,
   // and must see the toggle's *current* value without the server itself
@@ -110,10 +125,16 @@ export function Demo() {
               ))}
             </select>
           </label>
-          {!logOpen && (
-            <button type="button" className="cal-demo-reopen-log" onClick={() => setLogOpen(true)}>
-              Server log
+          {isNarrow ? (
+            <button type="button" className="cal-demo-log-toggle" aria-pressed={logOpen} onClick={() => setLogOpen((open) => !open)}>
+              Log
             </button>
+          ) : (
+            !logOpen && (
+              <button type="button" className="cal-demo-reopen-log" onClick={() => setLogOpen(true)}>
+                Server log
+              </button>
+            )
           )}
         </div>
       </header>

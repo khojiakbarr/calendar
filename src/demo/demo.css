@@ -78,11 +78,33 @@ body {
   color: var(--cal-accent, #3b82f6);
 }
 
+.cal-demo-log-toggle {
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cal-demo-log-toggle[aria-pressed="true"] {
+  border-color: var(--cal-accent, #3b82f6);
+  color: var(--cal-accent, #3b82f6);
+}
+
 .cal-demo-main {
   height: calc(100vh - 120px);
   display: flex;
   gap: 12px;
   min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .cal-demo-main {
+    height: calc(100vh - 88px);
+  }
 }
 
 .cal-demo-calendar {

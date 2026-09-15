@@ -41,7 +41,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={true}
         isPending={false}
         onSave={noop}
@@ -68,7 +67,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={false}
         isPending={false}
         onSave={onSave}
@@ -96,7 +94,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={false}
         isPending={false}
         onSave={onSave}
@@ -122,7 +119,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={false}
         isPending={false}
         onSave={onSave}
@@ -156,7 +152,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={true}
         isPending={false}
         onSave={noop}
@@ -173,7 +168,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={false}
         isPending={false}
         onSave={noop}
@@ -190,7 +184,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={true}
         isPending={false}
         onSave={noop}
@@ -211,7 +204,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={false}
         isPending={false}
         onSave={noop}
@@ -225,6 +217,52 @@ describe("EventEditor", () => {
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 
+  it("stacks the footer buttons Save, Cancel, Delete in sheet presentation", () => {
+    render(
+      <EventEditor
+        mode="edit"
+        initial={initial}
+        resources={resources}
+        labels={defaultLabels}
+        locale="en-US"
+        presentation="sheet"
+        canRemove={true}
+        isPending={false}
+        onSave={noop}
+        onRemove={noop}
+        onCancel={noop}
+      />,
+    )
+
+    const actions = document.body.querySelector(".cal-editor-actions")
+    const buttonLabels = Array.from(actions?.querySelectorAll("button") ?? []).map((button) => button.textContent)
+
+    expect(buttonLabels).toEqual([defaultLabels.save, defaultLabels.cancel, defaultLabels.delete])
+  })
+
+  it("keeps the footer buttons Delete, Cancel, Save in modal presentation", () => {
+    render(
+      <EventEditor
+        mode="edit"
+        initial={initial}
+        resources={resources}
+        labels={defaultLabels}
+        locale="en-US"
+        presentation="modal"
+        canRemove={true}
+        isPending={false}
+        onSave={noop}
+        onRemove={noop}
+        onCancel={noop}
+      />,
+    )
+
+    const actions = document.body.querySelector(".cal-editor-actions")
+    const buttonLabels = Array.from(actions?.querySelectorAll("button") ?? []).map((button) => button.textContent)
+
+    expect(buttonLabels).toEqual([defaultLabels.delete, defaultLabels.cancel, defaultLabels.save])
+  })
+
   it("disables Save and shows the saving label while isPending", () => {
     render(
       <EventEditor
@@ -233,7 +271,6 @@ describe("EventEditor", () => {
         resources={resources}
         labels={defaultLabels}
         locale="en-US"
-        anchor={null}
         canRemove={false}
         isPending={true}
         onSave={noop}

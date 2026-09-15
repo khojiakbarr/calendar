@@ -46,8 +46,11 @@ export { YearView } from "./components/views/YearView"
 export { AgendaView } from "./components/views/AgendaView"
 export { TimeGrid } from "./components/views/TimeGrid"
 
-/* Popovers: the editor, the read-only hover card, and the floating-card
-   primitive both are built on. */
+/* Floating layers: the modal/sheet the editor opens in, the anchored-popover
+   primitive (still used headlessly, e.g. for a menu), the editor itself, and
+   the read-only hover card. */
+export { Dialog } from "./components/Dialog"
+export type { DialogPresentation, DialogProps } from "./components/Dialog"
 export { Popover } from "./components/Popover"
 export type { AnchorRect } from "./components/Popover"
 export { EventEditor } from "./components/EventEditor"

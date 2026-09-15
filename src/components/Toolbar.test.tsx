@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import type { CalendarInstance } from "../instance"
@@ -8,6 +8,23 @@ import { isoWeek } from "../core/date"
 import { fill } from "../core/labels"
 import { defaultLabels } from "./labels"
 import { Toolbar } from "./Toolbar"
+
+/** Stubs `window.matchMedia` so only `query` matches — everything else reports no match. */
+function stubMatchMedia(query: string): void {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((candidate: string) => ({
+      matches: candidate === query,
+      media: candidate,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  )
+}
 
 /** A minimal fake `CalendarInstance`, built by hand so this test never depends on `useCalendar`. */
 function createInstance(overrides: Partial<CalendarInstance<unknown>> = {}): CalendarInstance<unknown> {
@@ -49,6 +66,10 @@ function createInstance(overrides: Partial<CalendarInstance<unknown>> = {}): Cal
 }
 
 describe("Toolbar", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it("shows the day-view title for the anchored date", () => {
     // Arrange
     const date = new Date(2022, 2, 15)
@@ -158,5 +179,16 @@ describe("Toolbar", () => {
     render(<Toolbar instance={instance} labels={defaultLabels} sidebarOpen onToggleSidebar={vi.fn()} onNewEvent={vi.fn()} />)
 
     expect(screen.getByRole("button", { name: defaultLabels.newEvent })).toBeInTheDocument()
+  })
+
+  it("collapses the New event button to icon-only, keeping its aria-label, at a narrow viewport", () => {
+    stubMatchMedia("(max-width: 640px)")
+    const instance = createInstance()
+    render(<Toolbar instance={instance} labels={defaultLabels} sidebarOpen onToggleSidebar={vi.fn()} onNewEvent={vi.fn()} />)
+
+    // The accessible name still resolves via aria-label even with no visible text.
+    const button = screen.getByRole("button", { name: defaultLabels.newEvent })
+    expect(button).toHaveAttribute("aria-label", defaultLabels.newEvent)
+    expect(button).not.toHaveTextContent(defaultLabels.newEvent)
   })
 })

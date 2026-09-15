@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState, type CSSProperties, type KeyboardEvent } from "react"
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type KeyboardEvent } from "react"
 import { classNames } from "../core/classNames"
 import { CalendarClassesContext, type CalendarClasses } from "./classesContext"
 import { CalendarThemeContext } from "./themeContext"
 import type { CalendarInstance } from "../instance"
 import type { CalendarEvent, CalendarLabels, CalendarView, EventDraft } from "../types"
+import type { DialogPresentation } from "./Dialog"
 import { EventEditor } from "./EventEditor"
 import { EventTooltip } from "./EventTooltip"
 import { defaultLabels } from "./labels"
@@ -12,6 +13,7 @@ import { Sidebar } from "./Sidebar"
 import { Toolbar } from "./Toolbar"
 import { buildNewEventDraft, useEditorState } from "./useEditorState"
 import { useHoverIntent, type HoverTarget } from "./useHoverIntent"
+import { useMediaQuery } from "./useMediaQuery"
 import { AgendaView } from "./views/AgendaView"
 import { rectOf } from "./views/anchor"
 import { DayView } from "./views/DayView"
@@ -19,6 +21,9 @@ import { MonthView } from "./views/MonthView"
 import { WeekView } from "./views/WeekView"
 import { YearView } from "./views/YearView"
 import "../styles/calendar.css"
+
+/** Below this width the sidebar becomes a drawer; keep in sync with sidebar.css. */
+const NARROW_SCREEN_QUERY = "(max-width: 900px)"
 
 /** How long the pointer must linger on an event before its tooltip appears. */
 const HOVER_DELAY_MS = 400
@@ -48,6 +53,12 @@ export interface CalendarProps<TData = unknown> {
    * See the "Styling" section of the README for the full slot list.
    */
   classes?: CalendarClasses
+  /**
+   * How the event editor presents itself: `"modal"`, `"sheet"`, or `"auto"`
+   * (default) — a sheet on a narrow viewport, a modal otherwise. Passed
+   * straight through to `EventEditor`'s `presentation` prop.
+   */
+  editorPresentation?: DialogPresentation
 }
 
 /** Whether `target` is a form control a global keyboard shortcut must not fire inside of. */
@@ -77,9 +88,15 @@ export function Calendar<TData = unknown>({
   sidebar = true,
   height,
   classes = {},
+  editorPresentation = "auto",
 }: CalendarProps<TData>) {
   const labels = useMemo(() => ({ ...defaultLabels, ...labelOverrides }), [labelOverrides])
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  // On a narrow screen the sidebar is an overlay drawer, so it starts closed
+  // there and follows the breakpoint when the window is resized across it.
+  const isNarrow = useMediaQuery(NARROW_SCREEN_QUERY)
+  const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow)
+  useEffect(() => setSidebarOpen(!isNarrow), [isNarrow])
+  const handleCloseSidebar = useCallback(() => setSidebarOpen(false), [])
   const editorState = useEditorState(instance)
   const hover = useHoverIntent<CalendarEvent<TData>>(HOVER_DELAY_MS)
   // Read directly off the prop rather than through CalendarClassesContext:
@@ -89,18 +106,23 @@ export function Calendar<TData = unknown>({
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((open) => !open), [])
 
+  // Both handlers below take fewer parameters than the view-level callback
+  // types they are assigned to (`onEventOpen`/`onCreateRequest` still hand a
+  // chip element or an AnchorRect, since the tooltip and the drag-ghost
+  // machinery still need them) — the editor itself opens unanchored now, so
+  // there is nothing here to do with either.
   const handleEventOpen = useCallback(
-    (event: CalendarEvent<TData>, el: HTMLElement) => {
+    (event: CalendarEvent<TData>) => {
       hover.hide()
-      editorState.openEdit(event, el)
+      editorState.openEdit(event)
     },
     [editorState, hover],
   )
 
   const handleCreateRequest = useCallback(
-    (draft: EventDraft<TData>, anchor: AnchorRect) => {
+    (draft: EventDraft<TData>) => {
       hover.hide()
-      editorState.openCreate(draft, anchor)
+      editorState.openCreate(draft)
     },
     [editorState, hover],
   )
@@ -115,7 +137,7 @@ export function Calendar<TData = unknown>({
 
   const handleNewEvent = useCallback(() => {
     hover.hide()
-    editorState.openCreate(buildNewEventDraft(instance), null)
+    editorState.openCreate(buildNewEventDraft(instance))
   }, [editorState, hover, instance])
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -150,7 +172,9 @@ export function Calendar<TData = unknown>({
       ) : null}
 
       <div className="cal-body">
-        {sidebar && sidebarOpen ? <Sidebar instance={instance} labels={labels} /> : null}
+        {sidebar && sidebarOpen ? (
+          <Sidebar instance={instance} labels={labels} onClose={handleCloseSidebar} />
+        ) : null}
         <div className="cal-main">
           {renderView(instance.view, {
             instance,
@@ -174,7 +198,7 @@ export function Calendar<TData = unknown>({
           resources={instance.resources}
           labels={labels}
           locale={instance.settings.locale}
-          anchor={editorState.editor.anchor}
+          presentation={editorPresentation}
           canRemove={editorState.canRemove}
           isPending={editorState.isPending}
           onSave={editorState.save}

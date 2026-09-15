@@ -93,4 +93,22 @@
     background-color: color-mix(in srgb, var(--cal-accent) 58%, var(--cal-bg));
     color: var(--cal-on-accent);
   }
+
+  /* --- Responsive ----------------------------------------------------------- */
+
+  @media (max-width: 900px) {
+    .cal-year {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cal-year {
+      grid-template-columns: 1fr;
+    }
+
+    .cal-year-month-title {
+      font-size: 15px;
+    }
+  }
 }

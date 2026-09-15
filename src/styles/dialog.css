@@ -1,0 +1,86 @@
+@layer calendar {
+  /* Dialog — the modal/sheet overlay EventEditor (and any future blocking
+     card) renders inside. Sizing and chrome live here; content padding is
+     each consumer's own concern (see .cal-editor in editor.css). */
+  .cal-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: color-mix(in srgb, var(--cal-fg) 45%, transparent);
+    animation: cal-dialog-backdrop-in 200ms ease-out;
+  }
+
+  .cal-dialog {
+    color: var(--cal-fg);
+    background-color: var(--cal-bg);
+    overflow: auto;
+  }
+
+  /* Centred card. */
+  .cal-dialog-modal {
+    width: min(420px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    border: 1px solid var(--cal-border);
+    border-radius: var(--cal-radius);
+    box-shadow: var(--cal-shadow);
+    animation: cal-dialog-modal-in 200ms ease-out;
+  }
+
+  /* Bottom sheet, docked to the viewport regardless of the backdrop's own
+     (flex-centring) layout — a `position: fixed` child ignores its parent's
+     alignment, which is exactly what "anchored to the bottom edge" needs. */
+  .cal-dialog-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: cal-dialog-sheet-in 300ms ease-out;
+  }
+
+  /* Drag-handle affordance at the top of the sheet — decorative only
+     (aria-hidden), the sheet itself has no drag-to-dismiss gesture. */
+  .cal-dialog-handle {
+    width: 36px;
+    height: 4px;
+    margin: 8px auto 0;
+    flex: none;
+    border-radius: 999px;
+    background-color: var(--cal-border-strong);
+  }
+
+  @keyframes cal-dialog-backdrop-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes cal-dialog-modal-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes cal-dialog-sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}

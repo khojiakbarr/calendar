@@ -41,7 +41,7 @@ function ClinicCalendar({ source }) {
 |---|---|
 | **Five views** | Day, week, month, year, agenda. Switch from the toolbar or `instance.setView`. |
 | **Drag to create, move, resize** | Drag empty space (or double-click it) to draw a new event, drag an event to another time or day, drag its bottom edge to change its end. Each gesture is only offered when the source supports the matching mutation. |
-| **Editor popover** | Click an event, or a newly drawn one, to name it, colour it, assign a resource, and set its exact start and end. |
+| **Editor** | Click an event, or a newly drawn one, to name it, colour it, assign a resource, and set its exact start and end — opens as a centred modal, or a bottom sheet on a narrow viewport. |
 | **Tooltip** | Hover an event for a read-only preview — name, date, time, resource — before committing to opening the editor. |
 | **Sidebar** | A mini month picker, a text filter, and per-resource visibility toggles, collapsible from the toolbar. |
 | **Keyboard navigation** | ← and → move to the previous/next period, `t` jumps to today, `Escape` closes whatever is open (the editor, the settings menu, an in-progress drag). |
@@ -280,7 +280,7 @@ say) never reaches them. Put token overrides on `:root`, on `body`, or on `.cal-
 | `--cal-hour-height` `--cal-gutter-width` `--cal-allday-row-height` | Time grid |
 | `--cal-event-radius` `--cal-event-fg` `--cal-now-line` | Events and the current-time line |
 | `--cal-chip-mix` `--cal-chip-mix-hover` | Percentage of an event's colour mixed into its chip background; `-hover` adds roughly ten points more. |
-| `--cal-shadow` `--cal-root-shadow` `--cal-focus-ring` | `--cal-shadow` is popover elevation, `--cal-root-shadow` is the calendar's own, and `--cal-focus-ring` is the visible-focus outline. |
+| `--cal-shadow` `--cal-root-shadow` `--cal-focus-ring` | `--cal-shadow` is floating-card elevation (the popover, the tooltip, the editor's modal), `--cal-root-shadow` is the calendar's own, and `--cal-focus-ring` is the visible-focus outline. |
 | `--cal-mini-cell` | Mini month picker |
 
 </details>
@@ -320,7 +320,7 @@ rather than cascade in — `<Calendar>` takes a `classes` prop:
 Each key adds a class alongside the slot's own `cal-*` class; it never replaces it. Slots:
 `root`, `toolbar`, `sidebar`, `miniCalendar`, `resourceFilter`, `view`, `dayHeader`,
 `allDayRow`, `timeGrid`, `event`, `month`, `monthCell`, `year`, `agenda`, `popover`,
-`editor`, `tooltip`.
+`dialog`, `editor`, `tooltip`.
 
 Also: `theme="light" | "dark"` (above), `className` on the root element, `labels` (below,
 for translation), and on `useCalendar`: `locale` (a BCP 47 tag, defaults to the browser's)
@@ -352,7 +352,9 @@ const instance = useCalendar({ id: "clinic", source, resources })
 
 Exported views: `DayView`, `WeekView`, `MonthView`, `YearView`, `AgendaView`. Exported
 chrome: `Toolbar`, `Sidebar`, `MiniCalendar`, `ResourceFilter`, `EventEditor`, `EventTooltip`,
-`Popover` (the floating-card primitive both are built on).
+`Popover` (an anchored floating-card primitive, still handy for a headless menu or a custom
+tooltip), and `Dialog` (a modal/bottom-sheet primitive — what `EventEditor` itself renders
+inside; see `presentation` on both).
 
 Two pure helpers are worth borrowing rather than rewriting:
 
@@ -403,6 +405,7 @@ Returns a `CalendarInstance<TData>` — see below.
 | `classes` | `Partial<Record<slot, string>>` | — | Adds a class to one named slot; see "Styling". |
 | `sidebar` | `boolean` | `true` | Whether the sidebar can be shown at all. |
 | `height` | `number \| string` | auto | CSS height of the root; omit to fill the parent (min 480px). |
+| `editorPresentation` | `"modal" \| "sheet" \| "auto"` | `"auto"` | How the event editor's `Dialog` presents itself; `"auto"` is a bottom sheet under a 640px viewport, a centred modal otherwise. |
 
 ### `CalendarInstance`
 
@@ -441,12 +444,15 @@ Returns a `CalendarInstance<TData>` — see below.
   current period's title is `aria-live="polite"`.
 - Every event chip carries `role="button"`, is keyboard-focusable, and its `aria-label` is
   built from `labels.eventDescription` — the name plus its start and end — rather than a
-  bare, indistinguishable "button". Enter or Space opens the editor, the same as a
-  double-click.
-- The editor and the tooltip are a focus-trapped popover: the first focusable field is
-  focused on open, focus returns to whatever held it before the popover appeared, and
-  `Escape` or a pointerdown outside closes it. A validation error is announced with
-  `role="alert"`.
+  bare, indistinguishable "button". Enter, Space or a click opens the editor; a double-click
+  still works too, without reopening a second time.
+- The editor opens in a `Dialog` (`role="dialog"`, `aria-modal="true"`): the first form field
+  is focused on open (an earlier button, e.g. the ×, is skipped in favour of it), `Tab` and
+  `Shift+Tab` cycle within the card instead of escaping it, focus returns to whatever held it
+  before the dialog opened, and `Escape` or a click on the backdrop closes it. The page behind
+  it stops scrolling while it is open. A validation error is announced with `role="alert"`.
+- The read-only hover tooltip is a plain, non-interactive card — it carries no focus trap of
+  its own, since nothing inside it can be focused.
 - The settings menu and an in-progress drag both close on `Escape` too.
 - Month, year and the mini month picker use `role="grid"`/`"row"`/`"gridcell"` with
   `aria-label`s, matching what a screen reader expects from a date grid.

@@ -26,6 +26,12 @@
     margin: 0 2px;
   }
 
+  /* The last group (New event + view switcher) sits too close to the first
+     group's 2px gap; it gets its own, slightly wider one. */
+  .cal-toolbar-group:last-child {
+    gap: 8px;
+  }
+
   .cal-toolbar-title {
     margin: 0 0 0 8px;
     font-size: 18px;
@@ -81,5 +87,58 @@
 
   .cal-menu-item:hover {
     background-color: var(--cal-hover-bg);
+  }
+
+  /* --- Responsive ----------------------------------------------------------
+     ≤900px: the view switcher wraps to its own full-width row.
+     ≤640px: the Today label, week/event badge and New event label hide
+     behind icons and aria-labels — that swap is JS-driven (Toolbar.tsx reads
+     the same breakpoint via useMediaQuery) so the button sizing below only
+     needs to size what JS already decided to render, not hide anything itself. */
+
+  @media (max-width: 900px) {
+    .cal-toolbar {
+      flex-wrap: wrap;
+      height: auto;
+      min-height: var(--cal-header-height);
+      row-gap: 8px;
+      padding: 8px 16px;
+    }
+
+    .cal-toolbar-title {
+      font-size: 16px;
+    }
+
+    .cal-toolbar-group:last-child {
+      flex: 1 1 100%;
+    }
+
+    .cal-segmented {
+      flex: 1;
+    }
+
+    .cal-segmented > button {
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cal-toolbar {
+      padding: 0 12px;
+    }
+
+    .cal-toolbar-newevent {
+      /* flex-shrink: 0 — .cal-segmented's flex-basis: 0% otherwise takes none
+         of the shrink weight, so all of it lands here and squashes the
+         button down toward its icon's content width instead of 36px. */
+      flex: 0 0 36px;
+      width: 36px;
+      padding: 0;
+    }
+
+    .cal-segmented > button {
+      padding: 0 8px;
+      font-size: 13px;
+    }
   }
 }

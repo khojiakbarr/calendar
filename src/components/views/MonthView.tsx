@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 import type { RefObject } from "react"
 import { classNames } from "../../core/classNames"
 import { addDays, isWeekend, startOfDay } from "../../core/date"
@@ -7,6 +7,7 @@ import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels, EventDraft } from "../../types"
 import "../../styles/month.css"
 import { useSlotClass } from "../classesContext"
+import { useMediaQuery } from "../useMediaQuery"
 import type { CellAnchorRect } from "./MonthCell"
 import { MonthRow } from "./MonthRow"
 import { useMonthDrag } from "./useMonthDrag"
@@ -14,9 +15,11 @@ import { useMonthDrag } from "./useMonthDrag"
 /** Height, in px, of one packed event row inside a cell (20px chip + 2px gap) — must match `month.css`. */
 const SEGMENT_ROW_STEP_PX = 22
 /** Space, in px, reserved at the top of a cell for the day-number head — must match `month.css`. */
-const DAY_HEAD_HEIGHT_PX = 20
+const DAY_HEAD_HEIGHT_PX = 28
 /** Used before the grid has been measured, or when `ResizeObserver` is unavailable. */
 const FALLBACK_MAX_ROWS = 3
+/** Below this width, `compact` defaults on when the caller does not pass it explicitly — matches month.css. */
+const COMPACT_QUERY = "(max-width: 640px)"
 
 export interface MonthViewProps<TData = unknown> {
   instance: CalendarInstance<TData>
@@ -26,6 +29,14 @@ export interface MonthViewProps<TData = unknown> {
   onEventHover: (event: CalendarEvent<TData> | null, anchor: HTMLElement | null) => void
   /** Test-only escape hatch: skips `ResizeObserver` measurement and forces this many event rows per cell. */
   rowLimit?: number
+  /**
+   * Forces the ≤640px compact layout (narrow weekday letters, no week-number
+   * column, event chips as dots) on or off. Omit it to follow `COMPACT_QUERY`
+   * automatically — the override exists mainly so tests and a caller that
+   * already tracks its own breakpoint don't need to fight this component's
+   * own `useMediaQuery` read.
+   */
+  compact?: boolean
 }
 
 /** Splits `items` into consecutive chunks of `size`, the week rows of a flat day list. */
@@ -78,7 +89,18 @@ function useMeasuredMaxRows(containerRef: RefObject<HTMLDivElement | null>, rowC
  * @example
  * <MonthView instance={instance} labels={labels} onEventOpen={openEditor} onCreateRequest={openCreate} onEventHover={showTooltip} />
  */
-export function MonthView<TData = unknown>({ instance, labels, onEventOpen, onCreateRequest, onEventHover, rowLimit }: MonthViewProps<TData>) {
+export function MonthView<TData = unknown>({
+  instance,
+  labels,
+  onEventOpen,
+  onCreateRequest,
+  onEventHover,
+  rowLimit,
+  compact: compactOverride,
+}: MonthViewProps<TData>) {
+  const isNarrow = useMediaQuery(COMPACT_QUERY)
+  const compact = compactOverride ?? isNarrow
+
   const columns = instance.showWeekends ? 7 : 5
   const weeks = useMemo(() => chunk(instance.days, columns), [instance.days, columns])
   const weekdayHeaders = weeks[0] ?? []
@@ -88,6 +110,26 @@ export function MonthView<TData = unknown>({ instance, labels, onEventOpen, onCr
 
   const daysByKey = useMemo(() => new Map(instance.days.map((day) => [formatDateInput(day), day] as const)), [instance.days])
   const drag = useMonthDrag(instance, daysByKey)
+
+  /**
+   * Compact mode opens a day by clicking its cell, but `MonthRow`/`MonthCell`
+   * (owned elsewhere) don't take a per-cell callback for that — so this
+   * delegates from the one container this view does own. Event chips and the
+   * "+N more" button live in a sibling overlay, not inside `.cal-month-cell`,
+   * so `closest(".cal-month-cell")` only ever matches an actual cell click.
+   */
+  const handleWeeksClick = useCallback(
+    (mouseEvent: MouseEvent<HTMLDivElement>): void => {
+      if (!compact) return
+      const cell = (mouseEvent.target as HTMLElement).closest<HTMLElement>(".cal-month-cell")
+      const dayKey = cell?.dataset["day"]
+      const day = dayKey ? daysByKey.get(dayKey) : undefined
+      if (!day) return
+      instance.setDate(day)
+      instance.setView("day")
+    },
+    [compact, daysByKey, instance],
+  )
 
   const firstVisibleResourceId = useMemo(
     () => instance.resources.find((resource) => !instance.hiddenResourceIds.includes(resource.id))?.id,
@@ -113,16 +155,16 @@ export function MonthView<TData = unknown>({ instance, labels, onEventOpen, onCr
   const monthSlotClass = useSlotClass("month")
 
   return (
-    <div className={classNames("cal-month", viewSlotClass, monthSlotClass)}>
+    <div className={classNames("cal-month", viewSlotClass, monthSlotClass, compact && "cal-month-compact")}>
       <div className="cal-month-headerrow" role="row">
         <div className="cal-month-weeknum-spacer" aria-hidden="true" />
         {weekdayHeaders.map((day) => (
           <div key={formatDateInput(day)} className={classNames("cal-month-headercell", isWeekend(day) && "cal-month-weekend-header")}>
-            {formatWeekday(day, instance.settings.locale, "short")}
+            {formatWeekday(day, instance.settings.locale, compact ? "narrow" : "short")}
           </div>
         ))}
       </div>
-      <div className="cal-month-weeks" ref={weeksRef} role="grid" aria-label={labels.month}>
+      <div className="cal-month-weeks" ref={weeksRef} role="grid" aria-label={labels.month} onClick={handleWeeksClick}>
         {weeks.map((weekDays, rowIndex) => (
           <MonthRow
             key={weekDays[0] ? formatDateInput(weekDays[0]) : rowIndex}

@@ -3,12 +3,10 @@ import { classNames } from "../core/classNames"
 import { formatFullDate, parseDateTimeInputs } from "../core/format"
 import type { CalendarLabels, CalendarResource, EventDraft } from "../types"
 import { useSlotClass } from "./classesContext"
-import { Popover, type AnchorRect } from "./Popover"
+import { Dialog, SHEET_BREAKPOINT_QUERY, type DialogPresentation } from "./Dialog"
 import { useEditorForm } from "./useEditorForm"
+import { useMediaQuery } from "./useMediaQuery"
 import "../styles/editor.css"
-
-/** Matches the "Bryntum editor" card width from the look spec. */
-const EDITOR_WIDTH_PX = 360
 
 export interface EventEditorProps<T> {
   mode: "create" | "edit"
@@ -16,7 +14,8 @@ export interface EventEditorProps<T> {
   resources: CalendarResource[]
   labels: CalendarLabels
   locale: string
-  anchor: AnchorRect | null
+  /** Modal on a wide viewport, bottom sheet on a narrow one by default; see {@link Dialog}. */
+  presentation?: DialogPresentation
   /** Whether Delete is offered at all (edit mode still needs `flags.remove` too). */
   canRemove: boolean
   /** Disables Save and swaps its label to `labels.saving` while a mutation is in flight. */
@@ -27,7 +26,8 @@ export interface EventEditorProps<T> {
 }
 
 /**
- * The create/edit form for one event, rendered inside a {@link Popover}.
+ * The create/edit form for one event, rendered inside a {@link Dialog} — a
+ * modal on a wide viewport, a bottom sheet on a narrow one.
  *
  * Field state and validation live in `useEditorForm`; this component is
  * markup and wiring only. Fields: name, resource (with a colour swatch),
@@ -35,7 +35,7 @@ export interface EventEditorProps<T> {
  *
  * @example
  * <EventEditor mode="create" initial={draft} resources={resources} labels={labels}
- *   locale="en-US" anchor={slotAnchor} canRemove={false} isPending={false}
+ *   locale="en-US" canRemove={false} isPending={false}
  *   onSave={createEvent} onRemove={() => {}} onCancel={closeEditor} />
  */
 export function EventEditor<T>({
@@ -44,7 +44,7 @@ export function EventEditor<T>({
   resources,
   labels,
   locale,
-  anchor,
+  presentation = "auto",
   canRemove,
   isPending,
   onSave,
@@ -54,6 +54,12 @@ export function EventEditor<T>({
   const titleId = useId()
   const form = useEditorForm(initial, labels)
   const slotClass = useSlotClass("editor")
+  // Mirrors Dialog's own "auto" resolution so the footer buttons can be
+  // reordered in the DOM (not just visually) to match the sheet layout —
+  // Tab order has to agree with what is drawn, so this cannot be done with
+  // CSS `order` alone.
+  const isNarrowViewport = useMediaQuery(SHEET_BREAKPOINT_QUERY)
+  const isSheet = presentation === "sheet" || (presentation === "auto" && isNarrowViewport)
   // A readable preview of the Start date, for locale-aware context above a
   // plain <input type="date"> — the only use this component has for `locale`.
   const startPreview = useMemo(
@@ -67,8 +73,25 @@ export function EventEditor<T>({
     if (draft) onSave(draft)
   }
 
+  const deleteButton =
+    mode === "edit" && canRemove ? (
+      <button type="button" className="cal-btn cal-btn-danger cal-editor-delete" onClick={onRemove}>
+        {labels.delete}
+      </button>
+    ) : null
+  const cancelButton = (
+    <button type="button" className="cal-btn" onClick={onCancel}>
+      {labels.cancel}
+    </button>
+  )
+  const saveButton = (
+    <button type="submit" className="cal-btn cal-btn-primary" disabled={isPending}>
+      {isPending ? labels.saving : labels.save}
+    </button>
+  )
+
   return (
-    <Popover anchor={anchor} onClose={onCancel} labelledBy={titleId} width={EDITOR_WIDTH_PX}>
+    <Dialog presentation={presentation} onClose={onCancel} labelledBy={titleId}>
       <form className={classNames("cal-editor", slotClass)} onSubmit={handleSubmit}>
         <div className="cal-editor-header">
           <h3 id={titleId} className="cal-editor-title">
@@ -83,7 +106,7 @@ export function EventEditor<T>({
 
         <label className="cal-editor-field">
           <span className="cal-editor-label">{labels.name}</span>
-          <input className="cal-input" autoFocus value={form.state.name} onChange={(event) => form.setName(event.target.value)} />
+          <input className="cal-input" value={form.state.name} onChange={(event) => form.setName(event.target.value)} />
         </label>
 
         <ResourceField
@@ -131,21 +154,23 @@ export function EventEditor<T>({
           </p>
         ) : null}
 
-        <div className="cal-editor-actions">
-          {mode === "edit" && canRemove ? (
-            <button type="button" className="cal-btn cal-btn-danger cal-editor-delete" onClick={onRemove}>
-              {labels.delete}
-            </button>
-          ) : null}
-          <button type="button" className="cal-btn" onClick={onCancel}>
-            {labels.cancel}
-          </button>
-          <button type="submit" className="cal-btn cal-btn-primary" disabled={isPending}>
-            {isPending ? labels.saving : labels.save}
-          </button>
+        <div className={classNames("cal-editor-actions", isSheet && "cal-editor-actions-sheet")}>
+          {isSheet ? (
+            <>
+              {saveButton}
+              {cancelButton}
+              {deleteButton}
+            </>
+          ) : (
+            <>
+              {deleteButton}
+              {cancelButton}
+              {saveButton}
+            </>
+          )}
         </div>
       </form>
-    </Popover>
+    </Dialog>
   )
 }
 
