@@ -1,0 +1,96 @@
+@layer calendar {
+  /* Year view: a responsive grid of 12 mini months. */
+
+  .cal-year {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 16px;
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .cal-year-month {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cal-year-month-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-align: center;
+    color: var(--cal-header-fg);
+  }
+
+  .cal-year-grid {
+    display: grid;
+    grid-template-columns: 20px repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .cal-year-weeknum {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-year-weekday {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-year-day {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    border-radius: var(--cal-radius-sm);
+    font-size: 12px;
+    color: var(--cal-fg);
+    cursor: pointer;
+  }
+
+  .cal-year-day:hover {
+    background-color: var(--cal-hover-bg);
+  }
+
+  .cal-year-day-other {
+    color: var(--cal-muted-fg);
+    opacity: 0.6;
+  }
+
+  .cal-year-today {
+    background-color: var(--cal-accent);
+    color: var(--cal-on-accent);
+    border-radius: 50%;
+    font-weight: 600;
+  }
+
+  .cal-year-heat-1 {
+    background-color: color-mix(in srgb, var(--cal-accent) 14%, var(--cal-bg));
+  }
+
+  .cal-year-heat-2 {
+    background-color: color-mix(in srgb, var(--cal-accent) 28%, var(--cal-bg));
+  }
+
+  .cal-year-heat-3 {
+    background-color: color-mix(in srgb, var(--cal-accent) 42%, var(--cal-bg));
+  }
+
+  .cal-year-heat-4 {
+    background-color: color-mix(in srgb, var(--cal-accent) 58%, var(--cal-bg));
+    color: var(--cal-on-accent);
+  }
+}

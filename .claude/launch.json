@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "calendar-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--port", "5198", "--strictPort"],
+      "port": 5198,
+      "autoPort": false
+    }
+  ]
+}

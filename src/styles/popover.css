@@ -1,0 +1,58 @@
+@layer calendar {
+  /* Popover — the floating card that hosts the event editor and other overlays */
+  .cal-popover {
+    position: fixed;
+    z-index: 1000;
+    min-width: 320px;
+    max-width: calc(100vw - 16px);
+    padding: 16px;
+    background-color: var(--cal-bg);
+    color: var(--cal-fg);
+    border: 1px solid var(--cal-border);
+    border-radius: var(--cal-radius);
+    box-shadow: var(--cal-shadow);
+  }
+
+  /* EventTooltip — read-only hover card, shares placement with the popover but not its chrome */
+  .cal-tooltip {
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+    max-width: 260px;
+    padding: 10px 12px;
+    background-color: var(--cal-bg);
+    color: var(--cal-fg);
+    border: 1px solid var(--cal-border);
+    border-radius: var(--cal-radius-sm);
+    box-shadow: var(--cal-shadow);
+    font-size: 13px;
+  }
+
+  .cal-tooltip-name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .cal-tooltip-date,
+  .cal-tooltip-time {
+    font-size: 12px;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-tooltip-resource {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-tooltip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+}

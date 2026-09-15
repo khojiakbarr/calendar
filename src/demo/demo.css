@@ -1,0 +1,185 @@
+/* Demo chrome only — the calendar itself is styled entirely by ../styles/index.css. */
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  background: #f5f6f8;
+  color: #18181b;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0f1115;
+    color: #fafafa;
+  }
+}
+
+.cal-demo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  height: 48px;
+  margin-bottom: 12px;
+}
+
+.cal-demo-title {
+  font-size: 15px;
+}
+
+.cal-demo-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cal-demo-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #71717a;
+}
+
+.cal-demo-field select {
+  font: inherit;
+  font-size: 13px;
+  padding: 3px 6px;
+}
+
+.cal-demo-checkbox {
+  cursor: pointer;
+}
+
+.cal-demo-reopen-log {
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* This selector sits outside .cal-root, so the shared --cal-* custom
+   properties are not in scope here — the fallback is the same value tokens.css
+   gives --cal-accent, kept in sync by hand since there are only a couple. */
+.cal-demo-reopen-log:hover {
+  border-color: var(--cal-accent, #3b82f6);
+  color: var(--cal-accent, #3b82f6);
+}
+
+.cal-demo-main {
+  height: calc(100vh - 120px);
+  display: flex;
+  gap: 12px;
+  min-height: 0;
+}
+
+.cal-demo-calendar {
+  flex: 1;
+  min-width: 0;
+  margin: 16px;
+}
+
+.cal-demo-log {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  flex-shrink: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cal-demo-log {
+    border-color: #3a3f49;
+    background: #15181f;
+  }
+}
+
+.cal-demo-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #d1d5db;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cal-demo-log-header {
+    border-color: #3a3f49;
+  }
+}
+
+.cal-demo-log-header h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cal-demo-log-header button {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+}
+
+.cal-demo-log-error {
+  margin: 8px 12px 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--cal-danger, #dc2626) 12%, transparent);
+  color: var(--cal-danger, #dc2626);
+  font-size: 12px;
+}
+
+.cal-demo-log-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  font-size: 11px;
+}
+
+.cal-demo-log-list li {
+  display: flex;
+  gap: 6px;
+  padding: 4px 12px;
+  font-family: ui-monospace, Menlo, monospace;
+}
+
+.cal-demo-log-empty {
+  font-family: inherit;
+  color: #71717a;
+  font-style: italic;
+}
+
+.cal-demo-log-time {
+  color: #71717a;
+  flex-shrink: 0;
+}
+
+.cal-demo-log-method {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.cal-demo-log-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

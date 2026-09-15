@@ -1,0 +1,29 @@
+/*
+ * The calendar's whole stylesheet, in cascade order: tokens first (every
+ * other file reads `--cal-*` custom properties from `.cal-root`), then one
+ * file per component area, most-general to most-specific. `src/index.ts`
+ * imports this single file so both the library build and the demo load the
+ * same CSS in the same order.
+ *
+ * Every rule below lives in `@layer calendar`. An unlayered stylesheet beats
+ * every layered one regardless of selector specificity — that's the cascade
+ * layer rule, not a specificity contest — so any plain `.css` file, CSS
+ * Module, or styled-components output an application already ships wins
+ * against a `cal-*` rule automatically, with no `!important` needed to
+ * override the calendar's look. Declaring the layer once here, before the
+ * first `@import`, fixes `calendar` as a single layer (Vite/Lightning CSS
+ * may merge the per-file `@layer calendar { … }` blocks into one on build,
+ * which is fine — layer membership, not file boundaries, is what matters)
+ * rather than one new layer per import.
+ */
+@layer calendar;
+@import "./tokens.css";
+@import "./toolbar.css";
+@import "./sidebar.css";
+@import "./timegrid.css";
+@import "./month.css";
+@import "./year.css";
+@import "./agenda.css";
+@import "./popover.css";
+@import "./editor.css";
+@import "./calendar.css";

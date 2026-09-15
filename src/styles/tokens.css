@@ -1,0 +1,329 @@
+@layer calendar {
+  /* Calendar design tokens and base classes */
+
+  .cal-root {
+    /* Layout */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    isolation: isolate;
+    min-height: 0;
+
+    /* Border, radius and elevation */
+    border: 1px solid var(--cal-border);
+    border-radius: var(--cal-radius);
+    box-shadow: var(--cal-root-shadow);
+
+    /* Colors and typography */
+    background-color: var(--cal-bg);
+    color: var(--cal-fg);
+    font: var(--cal-font);
+    font-size: var(--cal-font-size);
+
+    /* Light mode tokens (default) */
+    --cal-bg: #ffffff;
+    --cal-fg: #1f2933;
+    --cal-muted-fg: #6b7280;
+    --cal-border: #e6e8ec;
+    --cal-border-strong: #d5d9e0;
+
+    --cal-radius: 14px;
+    --cal-radius-sm: 8px;
+    --cal-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --cal-font-size: 14px;
+
+    --cal-accent: #3b82f6;
+    --cal-accent-soft: #dbeafe;
+    --cal-danger: #dc2626;
+    /* Text/icon colour drawn on top of a solid --cal-accent fill (today circles, filled heat cells). */
+    --cal-on-accent: #ffffff;
+
+    --cal-header-bg: #ffffff;
+    --cal-header-fg: #374151;
+    --cal-header-height: 56px;
+
+    --cal-sidebar-bg: #ffffff;
+    --cal-sidebar-width: 240px;
+
+    --cal-hover-bg: #f3f4f6;
+    --cal-selected-bg: #eef4ff;
+
+    --cal-weekend-fg: #dc2626;
+    --cal-today-fg: var(--cal-accent);
+
+    --cal-hour-height: 52px;
+    --cal-gutter-width: 60px;
+    --cal-allday-row-height: 22px;
+
+    --cal-event-radius: 6px;
+    --cal-event-fg: #1f2933;
+    --cal-now-line: #ef4444;
+
+    /* Percentage of --cal-event-color mixed into an event chip's background; hover adds ~10pt more. */
+    --cal-chip-mix: 18%;
+    --cal-chip-mix-hover: 28%;
+
+    --cal-shadow: 0 12px 40px rgb(0 0 0 / 0.16);
+    --cal-root-shadow: 0 4px 24px rgb(0 0 0 / 0.06);
+    --cal-focus-ring: var(--cal-accent);
+
+    --cal-mini-cell: 28px;
+  }
+
+  /* Dark mode — system preference */
+  @media (prefers-color-scheme: dark) {
+    .cal-root:not([data-theme="light"]) {
+      --cal-bg: #15171c;
+      --cal-fg: #e6e8ec;
+      --cal-muted-fg: #8b919c;
+      --cal-border: #2a2e37;
+      --cal-border-strong: #3a3f4a;
+
+      --cal-accent: #3b82f6;
+      --cal-accent-soft: #1e3a5f;
+      --cal-danger: #dc2626;
+
+      --cal-header-bg: #15171c;
+      --cal-header-fg: #e6e8ec;
+
+      --cal-sidebar-bg: #15171c;
+
+      --cal-hover-bg: #1f232b;
+      --cal-selected-bg: #1c2a44;
+
+      --cal-weekend-fg: #dc2626;
+      --cal-today-fg: var(--cal-accent);
+
+      --cal-event-fg: #eef0f3;
+
+      --cal-chip-mix: 30%;
+      --cal-chip-mix-hover: 40%;
+
+      --cal-root-shadow: none;
+    }
+  }
+
+  /* Dark mode — explicit theme */
+  .cal-root[data-theme="dark"] {
+    --cal-bg: #15171c;
+    --cal-fg: #e6e8ec;
+    --cal-muted-fg: #8b919c;
+    --cal-border: #2a2e37;
+    --cal-border-strong: #3a3f4a;
+
+    --cal-accent: #3b82f6;
+    --cal-accent-soft: #1e3a5f;
+    --cal-danger: #dc2626;
+
+    --cal-header-bg: #15171c;
+    --cal-header-fg: #e6e8ec;
+
+    --cal-sidebar-bg: #15171c;
+
+    --cal-hover-bg: #1f232b;
+    --cal-selected-bg: #1c2a44;
+
+    --cal-weekend-fg: #dc2626;
+    --cal-today-fg: var(--cal-accent);
+
+    --cal-event-fg: #eef0f3;
+
+    --cal-chip-mix: 30%;
+    --cal-chip-mix-hover: 40%;
+
+    --cal-root-shadow: none;
+  }
+
+  /* Main container (body) */
+  .cal-body {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Main content area */
+  .cal-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* Base button */
+  .cal-btn {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--cal-radius-sm);
+    padding: 0 14px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font: inherit;
+    font-weight: 500;
+    color: var(--cal-header-fg);
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+  }
+
+  .cal-btn:hover {
+    background-color: var(--cal-hover-bg);
+  }
+
+  /* Outline variant: an outlined border for secondary actions that need more
+     weight than a plain ghost button — the toolbar's Today and ‹ › controls. */
+  .cal-btn-outline {
+    border-color: var(--cal-border-strong);
+  }
+
+  /* Primary button */
+  .cal-btn-primary {
+    background-color: var(--cal-accent);
+    color: var(--cal-on-accent);
+    font-weight: 600;
+  }
+
+  .cal-btn-primary:hover {
+    background-color: #2563eb;
+  }
+
+  /* Danger button */
+  .cal-btn-danger {
+    background-color: transparent;
+    color: var(--cal-danger);
+  }
+
+  .cal-btn-danger:hover {
+    background-color: rgba(220, 38, 38, 0.1);
+  }
+
+  /* Icon button — always used standalone (never paired with .cal-btn), so it
+     carries its own full interactive treatment rather than relying on another
+     class for background, cursor and hover state. */
+  .cal-icon-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--cal-radius-sm);
+    background-color: transparent;
+    color: var(--cal-header-fg);
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+  }
+
+  .cal-icon-btn:hover {
+    background-color: var(--cal-hover-bg);
+  }
+
+  /* Segmented control (view switcher) */
+  .cal-segmented {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--cal-hover-bg);
+    border-radius: 999px;
+    padding: 3px;
+    height: 38px;
+    gap: 0;
+  }
+
+  .cal-segmented > button {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    height: 32px;
+    padding: 0 16px;
+    font: inherit;
+    font-weight: 500;
+    color: var(--cal-header-fg);
+    cursor: pointer;
+    transition: all 150ms ease-out;
+  }
+
+  .cal-segmented > button[aria-pressed="true"] {
+    background-color: var(--cal-bg);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+    color: var(--cal-fg);
+    font-weight: 600;
+  }
+
+  /* Checkbox */
+  .cal-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--cal-event-color, var(--cal-accent));
+    cursor: pointer;
+  }
+
+  /* Text input */
+  .cal-input {
+    height: 36px;
+    border-radius: var(--cal-radius-sm);
+    border: 1px solid var(--cal-border);
+    padding: 0 10px;
+    background-color: var(--cal-bg);
+    color: var(--cal-fg);
+    font: inherit;
+    font-size: var(--cal-font-size);
+    transition: border-color 150ms ease-out;
+  }
+
+  .cal-input:focus {
+    outline: none;
+    border-color: var(--cal-accent);
+  }
+
+  /* Focus ring for all interactive elements */
+  :where(.cal-root) :focus-visible {
+    outline: 2px solid var(--cal-focus-ring);
+    outline-offset: 1px;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .cal-root * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+
+  /* Progress bar animation */
+  @keyframes cal-progress {
+    0% {
+      transform: translateX(-100%);
+    }
+    50% {
+      transform: translateX(400%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+
+  /* Loading progress bar */
+  .cal-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--cal-accent);
+    animation: cal-progress 1.2s linear infinite;
+  }
+
+  /*
+   * Floating layers (the editor, the tooltip) are portaled to <body>, outside
+   * the root that defines the tokens. They carry `cal-root` themselves so the
+   * tokens and the theme reach them, and `display: contents` so the wrapper
+   * itself draws nothing — no border, no background, no flex box.
+   */
+  .cal-floating {
+    display: contents;
+  }
+}

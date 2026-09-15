@@ -1,0 +1,31 @@
+@layer calendar {
+  /* Calendar shell: root sizing, and the loading/error strip under the toolbar. */
+
+  .cal-root {
+    /* Only applies until a `height` prop overrides it inline — see Calendar.tsx. */
+    height: 100%;
+    min-height: 480px;
+  }
+
+  /* tokens.css pins .cal-progress to the very top of .cal-root; nudge it down
+     to sit under the 48px toolbar, where the loading indicator belongs. */
+  .cal-progress {
+    top: var(--cal-header-height);
+  }
+
+  .cal-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 16px;
+    background-color: color-mix(in srgb, var(--cal-danger) 10%, var(--cal-bg));
+    color: var(--cal-danger);
+    border-bottom: 1px solid var(--cal-border);
+    flex-shrink: 0;
+  }
+
+  .cal-error-message {
+    font-size: var(--cal-font-size);
+  }
+}

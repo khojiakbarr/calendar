@@ -1,0 +1,152 @@
+@layer calendar {
+  /* EventEditor — create/edit form rendered inside a Popover */
+  .cal-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cal-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Close icon sits smaller than the default 36px icon button, top-right of the card. */
+  .cal-editor-header .cal-icon-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .cal-editor-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .cal-editor-preview {
+    margin: 2px 0 16px;
+    font-size: 12px;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-editor-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cal-editor-label {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-editor-field .cal-input {
+    width: 100%;
+    height: 38px;
+    border-color: var(--cal-border-strong);
+  }
+
+  .cal-editor-field .cal-input:focus {
+    border-color: var(--cal-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cal-accent) 20%, transparent);
+  }
+
+  .cal-editor-switch {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cal-editor-resource-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cal-editor-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .cal-editor-datetime {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .cal-editor-datetime .cal-input {
+    min-width: 0;
+  }
+
+  .cal-editor-error {
+    margin: 0;
+    font-size: 12px;
+    color: var(--cal-danger);
+  }
+
+  .cal-editor-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .cal-editor-delete {
+    margin-right: auto;
+  }
+
+  /* All-day switch: a visually hidden checkbox driving a sliding pill track. */
+  .cal-switch {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 40px;
+    height: 22px;
+  }
+
+  .cal-switch-input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .cal-switch-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background-color: var(--cal-border-strong);
+    pointer-events: none;
+    transition: background-color 150ms ease-out;
+  }
+
+  .cal-switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--cal-on-accent);
+    transition: transform 150ms ease-out;
+  }
+
+  .cal-switch-input:checked + .cal-switch-track {
+    background-color: var(--cal-accent);
+  }
+
+  .cal-switch-input:checked + .cal-switch-track .cal-switch-knob {
+    transform: translateX(18px);
+  }
+
+  .cal-switch-input:focus-visible + .cal-switch-track {
+    outline: 2px solid var(--cal-focus-ring);
+    outline-offset: 2px;
+  }
+}

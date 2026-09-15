@@ -1,0 +1,85 @@
+@layer calendar {
+  /* Toolbar: sidebar toggle, settings, navigation, title and view switcher */
+
+  .cal-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    height: var(--cal-header-height);
+    padding: 0 16px;
+    background-color: var(--cal-header-bg);
+    color: var(--cal-header-fg);
+    border-bottom: 1px solid var(--cal-border);
+    flex-shrink: 0;
+  }
+
+  .cal-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .cal-toolbar-today {
+    gap: 6px;
+    margin: 0 2px;
+  }
+
+  .cal-toolbar-title {
+    margin: 0 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--cal-fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cal-toolbar-badge {
+    margin-left: 8px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background-color: var(--cal-hover-bg);
+    color: var(--cal-muted-fg);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Settings menu */
+
+  .cal-toolbar-settings {
+    position: relative;
+  }
+
+  .cal-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 10;
+    min-width: 180px;
+    padding: 6px;
+    background-color: var(--cal-bg);
+    border: 1px solid var(--cal-border);
+    border-radius: var(--cal-radius-sm);
+    box-shadow: var(--cal-shadow);
+  }
+
+  .cal-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: var(--cal-radius-sm);
+    cursor: pointer;
+    font-size: var(--cal-font-size);
+    color: var(--cal-fg);
+  }
+
+  .cal-menu-item:hover {
+    background-color: var(--cal-hover-bg);
+  }
+}

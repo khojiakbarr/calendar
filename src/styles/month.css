@@ -1,0 +1,215 @@
+@layer calendar {
+  /* Month view: header row of weekday names + a 6-row grid of day cells. */
+
+  .cal-month {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .cal-month-headerrow {
+    display: flex;
+    height: 36px;
+    border-bottom: 1px solid var(--cal-border);
+    background-color: var(--cal-header-bg);
+    flex-shrink: 0;
+  }
+
+  .cal-month-weeknum-spacer {
+    width: 32px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--cal-border);
+  }
+
+  .cal-month-headercell {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-month-weekend-header {
+    color: var(--cal-weekend-fg);
+  }
+
+  .cal-month-weeks {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .cal-month-row {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    border-bottom: 1px solid var(--cal-border);
+  }
+
+  .cal-month-row:last-child {
+    border-bottom: none;
+  }
+
+  .cal-month-weeknum {
+    width: 32px;
+    flex-shrink: 0;
+    padding-top: 4px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--cal-muted-fg);
+    border-right: 1px solid var(--cal-border);
+  }
+
+  .cal-month-days {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    position: relative;
+  }
+
+  .cal-month-cell {
+    min-width: 0;
+    padding: 6px 8px;
+    box-sizing: border-box;
+    border-right: 1px solid var(--cal-border);
+  }
+
+  .cal-month-cell:last-child {
+    border-right: none;
+  }
+
+  .cal-month-other {
+    opacity: 0.45;
+  }
+
+  .cal-month-drop {
+    background-color: var(--cal-selected-bg);
+  }
+
+  .cal-month-daynum {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    float: right;
+    height: 20px;
+    min-width: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    box-sizing: border-box;
+  }
+
+  .cal-month-today {
+    background-color: var(--cal-accent);
+    color: var(--cal-on-accent);
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    font-weight: 600;
+  }
+
+  .cal-month-first {
+    font-weight: 600;
+  }
+
+  /* Overlay grid stacking this row's event segments, sitting above the day cells. */
+  .cal-month-segments {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-auto-rows: 20px;
+    row-gap: 2px;
+    column-gap: 2px;
+    padding: 20px 4px 2px;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+
+  .cal-month-event {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 20px;
+    min-width: 0;
+    padding: 0 4px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .cal-month-event-span {
+    background-color: color-mix(in srgb, var(--cal-event-color) 35%, var(--cal-bg));
+    color: var(--cal-event-fg);
+    border-left: 3px solid var(--cal-event-color);
+  }
+
+  .cal-month-event-span.cal-continues-before {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left-width: 0;
+    padding-left: 7px;
+  }
+
+  .cal-month-event-span.cal-continues-after {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .cal-month-event-timed {
+    background-color: transparent;
+    color: var(--cal-fg);
+  }
+
+  .cal-month-event-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--cal-event-color);
+    flex-shrink: 0;
+  }
+
+  .cal-month-event-time {
+    flex-shrink: 0;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-month-event-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+  }
+
+  .cal-event-pending {
+    opacity: 0.6;
+  }
+
+  .cal-month-more {
+    pointer-events: auto;
+    background: none;
+    border: none;
+    padding: 0 4px;
+    text-align: left;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--cal-accent);
+    cursor: pointer;
+  }
+
+  .cal-month-more:hover {
+    text-decoration: underline;
+  }
+}

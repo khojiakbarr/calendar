@@ -1,0 +1,147 @@
+@layer calendar {
+  /* Sidebar: mini month picker, filter input, resource list */
+
+  .cal-sidebar {
+    width: var(--cal-sidebar-width);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 16px;
+    overflow-y: auto;
+    border-right: 1px solid var(--cal-border);
+    background-color: var(--cal-sidebar-bg);
+  }
+
+  .cal-sidebar-filter {
+    display: flex;
+    margin: 16px 0;
+  }
+
+  .cal-sidebar-filter .cal-input {
+    width: 100%;
+  }
+
+  /* Mini calendar */
+
+  .cal-mini-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .cal-mini-header .cal-icon-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+  }
+
+  .cal-mini-title {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--cal-fg);
+  }
+
+  .cal-mini-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cal-mini-row {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .cal-mini-weekday {
+    width: var(--cal-mini-cell);
+    height: var(--cal-mini-cell);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-mini-weekday.cal-mini-weekend {
+    color: var(--cal-weekend-fg);
+  }
+
+  .cal-mini-day {
+    width: var(--cal-mini-cell);
+    height: var(--cal-mini-cell);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--cal-fg);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .cal-mini-day:hover {
+    background-color: var(--cal-hover-bg);
+  }
+
+  .cal-mini-day.cal-mini-weekend {
+    color: var(--cal-weekend-fg);
+  }
+
+  .cal-mini-day.cal-mini-other {
+    opacity: 0.45;
+  }
+
+  .cal-mini-day.cal-mini-today {
+    background-color: var(--cal-accent);
+    color: var(--cal-on-accent);
+    font-weight: 600;
+  }
+
+  .cal-mini-day.cal-mini-selected {
+    background-color: var(--cal-selected-bg);
+    color: var(--cal-accent);
+    font-weight: 600;
+  }
+
+  /* Resource filter */
+
+  .cal-resources {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cal-resources-heading {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--cal-muted-fg);
+    margin: 20px 0 8px;
+  }
+
+  .cal-resource-row {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    gap: 10px;
+    padding: 0 6px;
+    border-radius: var(--cal-radius-sm);
+    cursor: pointer;
+  }
+
+  .cal-resource-row:hover {
+    background-color: var(--cal-hover-bg);
+  }
+
+  .cal-resource-name {
+    font-size: 13px;
+    color: var(--cal-fg);
+  }
+}

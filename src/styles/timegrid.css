@@ -1,0 +1,323 @@
+@layer calendar {
+  /* Day and week views: headers, all-day strip, hour grid, event chips. */
+
+  .cal-timegrid {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* --- Day headers -------------------------------------------------------- */
+
+  /* Outside .cal-timegrid-scroll, so it stays put while the hours scroll under it. */
+  .cal-timegrid-header {
+    display: grid;
+    position: relative;
+    z-index: 2;
+    height: 72px;
+    background-color: var(--cal-header-bg);
+    border-bottom: 1px solid var(--cal-border);
+  }
+
+  .cal-timegrid-header-gutter {
+    border-right: 1px solid var(--cal-border);
+  }
+
+  .cal-day-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 4px 8px;
+    border-left: 1px solid var(--cal-border);
+  }
+
+  .cal-day-header-name {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-day-header.cal-weekend .cal-day-header-name {
+    color: var(--cal-weekend-fg);
+  }
+
+  .cal-day-header-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-top: 4px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background-color: transparent;
+    color: var(--cal-header-fg);
+    font: inherit;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+  }
+
+  button.cal-day-header-number:hover {
+    background-color: var(--cal-hover-bg);
+  }
+
+  .cal-day-header.cal-today .cal-day-header-number {
+    background-color: var(--cal-accent-soft);
+    color: var(--cal-today-fg);
+    font-weight: 600;
+  }
+
+  /* --- All-day strip ------------------------------------------------------ */
+
+  .cal-allday-row {
+    display: grid;
+    position: relative;
+    z-index: 1;
+    padding: 6px 0;
+    background-color: var(--cal-bg);
+    border-bottom: 1px solid var(--cal-border);
+  }
+
+  .cal-allday-gutter {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 0 6px;
+    border-right: 1px solid var(--cal-border);
+    font-size: 11px;
+    color: var(--cal-muted-fg);
+  }
+
+  .cal-allday-cols {
+    /* The row grid has a gutter column first; the columns area takes the rest. */
+    grid-column: 2 / -1;
+    display: grid;
+    gap: 2px;
+  }
+
+  .cal-allday-pill {
+    display: flex;
+    align-items: center;
+    align-self: center;
+    min-width: 0;
+    height: 20px;
+    margin: 0 2px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--cal-event-color) 35%, var(--cal-bg));
+    border-left: 3px solid var(--cal-event-color);
+    color: var(--cal-event-fg);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+
+  /* A bar that runs past the edge of the view is cut to a chevron so it reads as continuing. */
+  .cal-event-continues-after {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%);
+  }
+
+  .cal-event-continues-before {
+    border-left-width: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 6px 100%, 0 50%);
+  }
+
+  .cal-event-continues-before.cal-event-continues-after {
+    clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+  }
+
+  .cal-allday-more {
+    align-self: center;
+    margin: 0 2px;
+    padding: 0 4px;
+    border: none;
+    border-radius: var(--cal-radius-sm);
+    background-color: transparent;
+    color: var(--cal-muted-fg);
+    font: inherit;
+    font-size: 11px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .cal-allday-more:hover {
+    background-color: var(--cal-hover-bg);
+    color: var(--cal-fg);
+  }
+
+  /* --- Hour grid ---------------------------------------------------------- */
+
+  .cal-timegrid-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .cal-timegrid-body {
+    display: grid;
+    position: relative;
+  }
+
+  /* Dragging must not select the labels the pointer sweeps over, and touch drags
+     must not also scroll the grid underneath. */
+  .cal-timegrid-body.cal-dragging {
+    user-select: none;
+    touch-action: none;
+  }
+
+  .cal-timegrid-gutter {
+    position: relative;
+    border-right: 1px solid var(--cal-border);
+  }
+
+  .cal-timegrid-hour-label {
+    position: absolute;
+    right: 8px;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--cal-muted-fg);
+    white-space: nowrap;
+  }
+
+  .cal-timegrid-col {
+    position: relative;
+    border-left: 1px solid var(--cal-border);
+    overflow: hidden;
+  }
+
+  .cal-timegrid-col.cal-today {
+    background-color: color-mix(in srgb, var(--cal-accent) 5%, var(--cal-bg));
+  }
+
+  .cal-timegrid-lines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .cal-timegrid-hour {
+    position: relative;
+    height: var(--cal-hour-height);
+    border-top: 1px solid var(--cal-border);
+  }
+
+  .cal-timegrid-hour::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed color-mix(in srgb, var(--cal-border) 55%, transparent);
+  }
+
+  /* --- Event chips -------------------------------------------------------- */
+
+  .cal-event {
+    --cal-event-color: var(--cal-accent);
+    box-sizing: border-box;
+    color: var(--cal-event-fg);
+  }
+
+  .cal-event-timed {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 3px 6px;
+    border-radius: var(--cal-event-radius);
+    background-color: color-mix(in srgb, var(--cal-event-color) var(--cal-chip-mix), var(--cal-bg));
+    border-left: 3px solid var(--cal-event-color);
+    box-shadow: 0 0 0 1px var(--cal-bg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+  }
+
+  .cal-event-timed:hover {
+    background-color: color-mix(in srgb, var(--cal-event-color) var(--cal-chip-mix-hover), var(--cal-bg));
+  }
+
+  .cal-event-time {
+    font-size: 11px;
+    line-height: 1.2;
+    color: color-mix(in srgb, var(--cal-fg) 70%, transparent);
+    white-space: nowrap;
+  }
+
+  .cal-event-name {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* In flight to the server: dimmed until it is confirmed or rolled back. */
+  .cal-event-pending {
+    opacity: 0.6;
+  }
+
+  .cal-event-readonly {
+    cursor: default;
+  }
+
+  .cal-event-resize {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 6px;
+    cursor: ns-resize;
+  }
+
+  .cal-event-ghost {
+    position: absolute;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    padding: 2px 4px;
+    border: 1.5px dashed var(--cal-accent);
+    border-radius: var(--cal-event-radius);
+    background-color: color-mix(in srgb, var(--cal-accent) 12%, var(--cal-bg));
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* --- Now indicator ------------------------------------------------------ */
+
+  .cal-now-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    border-top: 2px solid var(--cal-now-line);
+    pointer-events: none;
+  }
+
+  .cal-now-dot {
+    position: absolute;
+    top: -5px;
+    left: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--cal-now-line);
+  }
+}
