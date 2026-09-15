@@ -205,3 +205,14 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ?embed=1 — nothing but the calendar, edge to edge, for screenshots and iframes. */
+.cal-demo-embed {
+  position: fixed;
+  inset: 0;
+  padding: 16px;
+  box-sizing: border-box;
+}
+.cal-demo-embed > .cal-root {
+  height: 100%;
+}

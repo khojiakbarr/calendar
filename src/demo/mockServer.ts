@@ -289,6 +289,16 @@ export function seedEvents(anchor: Date): CalendarEvent[] {
   // Check-Out & Fly home: Fri 10:00–12:00 (michael)
   addEvent("Check-Out & Fly home", addDays(anchorMonday, 4), 10 * 60, 12 * 60, "michael")
 
+  // A few more so the anchor week reads like a real diary: a daily standup,
+  // one overlap on Friday, a dentist visit, and a two-day conference next week.
+  for (let weekday = 0; weekday < 5; weekday += 1) {
+    addEvent("Standup", addDays(anchorMonday, weekday), 8 * 60 + 30, 9 * 60, "team")
+  }
+  addEvent("Design review", addDays(anchorMonday, 2), 11 * 60, 12 * 60 + 30, "team")
+  addEvent("Dentist", addDays(anchorMonday, 3), 15 * 60, 16 * 60, "michael")
+  addEvent("Client call", addDays(anchorMonday, 4), 14 * 60 + 30, 15 * 60 + 30, "michael")
+  addSpan("React conference", addDays(anchorMonday, 9), 2, "team")
+
   // Other weeks: Weekly sync (Mon 11:00–12:00) and Offsite (2-day, all-day in second week after)
   for (let weekOffset of [-4, -3, -2, -1, 1, 2, 3, 4]) {
     const weekMon = addDays(anchorMonday, weekOffset * 7)

@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Calendar } from "../components/Calendar"
 import { useMediaQuery } from "../components/useMediaQuery"
-import { localStoragePreferences } from "../core/persistence"
+import { localStoragePreferences, noPreferenceStorage } from "../core/persistence"
 import type { EventSourceAction } from "../types"
 import { useCalendar } from "../useCalendar"
 import { createMockServer, demoResources, type ServerLogEntry } from "./mockServer"
+import { readDemoUrlOptions } from "./urlOptions"
+
+/** Read once: the URL is the demo's only input that never changes while it runs. */
+const urlOptions = readDemoUrlOptions(typeof location === "undefined" ? "" : location.search)
 
 /** How many rows the "Server log" rail keeps — enough to see a pattern, not a scrollback. */
 const MAX_LOG_ENTRIES = 30
@@ -33,8 +37,8 @@ function formatClock(date: Date): string {
  */
 export function Demo() {
   const isNarrow = useMediaQuery(NARROW_QUERY)
-  const [themeChoice, setThemeChoice] = useState<ThemeChoice>("system")
-  const [latencyMs, setLatencyMs] = useState(350)
+  const [themeChoice, setThemeChoice] = useState<ThemeChoice>(urlOptions.theme ?? "system")
+  const [latencyMs, setLatencyMs] = useState(urlOptions.latencyMs ?? 350)
   const [failNextChecked, setFailNextChecked] = useState(false)
   const [log, setLog] = useState<ServerLogEntry[]>([])
   const [lastError, setLastError] = useState<string | null>(null)
@@ -74,7 +78,7 @@ export function Demo() {
   }, [])
 
   const server = useMemo(
-    () => createMockServer({ latencyMs, failNext, onLog: handleLog }),
+    () => createMockServer({ latencyMs, failNext, onLog: handleLog, ...(urlOptions.date ? { seed: urlOptions.date } : {}) }),
     // `failNext` and `handleLog` are stable callbacks that always read the
     // latest ref/state — only a latency change should spin up a fresh server.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,10 +93,20 @@ export function Demo() {
     id: "demo",
     source: server,
     resources: demoResources,
-    storage: localStoragePreferences(),
-    initialView: "week",
+    // A linked state must not be overridden by whatever this browser stored last.
+    storage: urlOptions.embed ? noPreferenceStorage() : localStoragePreferences(),
+    initialView: urlOptions.view ?? "week",
+    ...(urlOptions.date ? { initialDate: urlOptions.date } : {}),
     onError: handleError,
   })
+
+  if (urlOptions.embed) {
+    return (
+      <div className="cal-demo cal-demo-embed">
+        <Calendar instance={instance} height="100%" {...(themeChoice === "system" ? {} : { theme: themeChoice })} />
+      </div>
+    )
+  }
 
   return (
     <div className="cal-demo">

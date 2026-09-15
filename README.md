@@ -35,6 +35,25 @@ function ClinicCalendar({ source }) {
 
 ---
 
+## Preview
+
+Everything below is the demo (`pnpm dev`) running against the in-memory mock server in
+`src/demo/mockServer.ts` — the same `EventSource` contract a real backend implements.
+
+![Week view](https://raw.githubusercontent.com/khojiakbarr/calendar/main/docs/week-light.png)
+
+| Month | Agenda |
+|---|---|
+| ![Month view](https://raw.githubusercontent.com/khojiakbarr/calendar/main/docs/month-light.png) | ![Agenda view](https://raw.githubusercontent.com/khojiakbarr/calendar/main/docs/agenda-light.png) |
+
+| Editor opens on click | Dark theme |
+|---|---|
+| ![Event editor](https://raw.githubusercontent.com/khojiakbarr/calendar/main/docs/editor-light.png) | ![Week view, dark](https://raw.githubusercontent.com/khojiakbarr/calendar/main/docs/week-dark.png) |
+
+<p align="center"><img src="https://raw.githubusercontent.com/khojiakbarr/calendar/main/docs/phone-sheet.png" width="300" alt="On a phone the editor is a bottom sheet"></p>
+
+---
+
 ## What it does
 
 | | |

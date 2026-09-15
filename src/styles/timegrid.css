@@ -351,4 +351,26 @@
       font-size: 11px;
     }
   }
+
+  /* A chip shorter than 45 minutes: time and name on one line, nothing clipped. */
+  .cal-event-short {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .cal-event-short .cal-event-time {
+    flex: 0 0 auto;
+    line-height: 1;
+  }
+  .cal-event-short .cal-event-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+  }
 }

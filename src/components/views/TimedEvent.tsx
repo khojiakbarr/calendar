@@ -8,6 +8,9 @@ import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
 import { useSlotClass } from "../classesContext"
 
+/** Below this length a chip has room for one line only, so time and name share it. */
+const SHORT_EVENT_MINUTES = 45
+
 /** Minutes in an hour — the unit `--cal-hour-height` is expressed per. */
 const MINUTES_PER_HOUR = 60
 
@@ -178,6 +181,7 @@ export function TimedEvent<T>({ block, instance, labels, dayStartMinutes, onOpen
       className={classNames(
         "cal-event",
         "cal-event-timed",
+        block.endMinutes - block.startMinutes < SHORT_EVENT_MINUTES && "cal-event-short",
         isPending && "cal-event-pending",
         isReadOnly && "cal-event-readonly",
         eventSlotClass,
