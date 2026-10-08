@@ -85,7 +85,7 @@
     background-color: transparent;
     color: var(--cal-fg);
     font: inherit;
-    font-size: 12px;
+    font-size: calc(12px * var(--cal-date-scale));
     cursor: pointer;
   }
 

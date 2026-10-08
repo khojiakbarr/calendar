@@ -29,7 +29,7 @@
   }
 
   .cal-agenda-day-number {
-    font-size: 28px;
+    font-size: calc(28px * var(--cal-date-scale));
     font-weight: 500;
     line-height: 1;
     color: var(--cal-fg);
@@ -122,7 +122,7 @@
     }
 
     .cal-agenda-day-number {
-      font-size: 22px;
+      font-size: calc(22px * var(--cal-date-scale));
     }
 
     .cal-agenda-time {

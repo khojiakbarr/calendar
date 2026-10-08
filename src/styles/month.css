@@ -106,7 +106,7 @@
     min-width: 20px;
     padding: 0 5px;
     border-radius: 999px;
-    font-size: 13px;
+    font-size: calc(13px * var(--cal-date-scale));
     font-weight: 500;
     box-sizing: border-box;
   }

@@ -58,7 +58,7 @@
     background-color: transparent;
     color: var(--cal-header-fg);
     font: inherit;
-    font-size: 24px;
+    font-size: calc(24px * var(--cal-date-scale));
     font-weight: 500;
     line-height: 1;
     cursor: pointer;
@@ -234,6 +234,15 @@
     color: var(--cal-event-fg);
   }
 
+  /* Placed from `blockStyle`'s custom properties, so a hover can widen and lengthen it (hover.css). */
+  .cal-event-timed,
+  .cal-event-ghost,
+  .cal-timegrid-more {
+    left: var(--cal-chip-left, 0);
+    width: var(--cal-chip-width, calc(100% - 2px));
+    height: var(--cal-chip-height, auto);
+  }
+
   .cal-event-timed {
     position: absolute;
     z-index: 2;
@@ -340,7 +349,7 @@
     }
 
     .cal-day-header-number {
-      font-size: 18px;
+      font-size: calc(18px * var(--cal-date-scale));
     }
 
     .cal-event-timed {

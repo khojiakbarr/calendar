@@ -56,7 +56,7 @@
     justify-content: center;
     height: 28px;
     border-radius: var(--cal-radius-sm);
-    font-size: 12px;
+    font-size: calc(12px * var(--cal-date-scale));
     color: var(--cal-fg);
     cursor: pointer;
   }

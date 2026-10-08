@@ -1,0 +1,98 @@
+@layer calendar {
+  /*
+   * An event under the pointer (or the keyboard's focus) is lifted off the
+   * grid: a shadow, the column's full width, its whole text — wrapped rather
+   * than cut — and no ring. Its record's other dates glow rather than wear an
+   * outline. Only the grown size and the shadow move, eased; with reduced
+   * motion they change at once. Every rule starts at `.cal-root`, one class
+   * stronger than a view's own chip rule, so it wins whatever order the
+   * bundle puts the files in.
+   */
+
+  .cal-root .cal-event-timed,
+  .cal-root .cal-allday-pill,
+  .cal-root .cal-month-event,
+  .cal-root .cal-agenda-row {
+    transition:
+      left 180ms ease-out,
+      width 180ms ease-out,
+      box-shadow 180ms ease-out,
+      background-color 150ms ease-out;
+  }
+
+  /* The time grid: the chip takes the whole column and as much height as its text needs. */
+  .cal-root .cal-event-timed:is(:hover, :focus-visible) {
+    z-index: 6;
+    left: 0;
+    width: calc(100% - 2px);
+    height: auto;
+    min-height: var(--cal-chip-height, auto);
+    box-shadow: var(--cal-hover-shadow);
+    outline: none;
+  }
+
+  .cal-root .cal-event-timed:is(:hover, :focus-visible) :is(.cal-event-name, .cal-event-time) {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .cal-root .cal-event-short:is(:hover, :focus-visible) {
+    flex-wrap: wrap;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  /* The month and the all-day strip: the chip grows past its cell to fit its name, up to a readable line. */
+  .cal-root :is(.cal-month-event, .cal-allday-pill):is(:hover, :focus-visible) {
+    position: relative;
+    z-index: 6;
+    align-self: start;
+    min-width: 100%;
+    width: max-content;
+    max-width: 280px;
+    height: auto;
+    min-height: 100%;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    box-shadow: var(--cal-hover-shadow);
+    outline: none;
+  }
+
+  /* A month's timed line has no fill of its own; lifted over its neighbours it needs one. */
+  .cal-root .cal-month-event-timed:is(:hover, :focus-visible) {
+    background-color: var(--cal-bg);
+  }
+
+  .cal-root :is(.cal-month-event, .cal-allday-pill):is(:hover, :focus-visible) .cal-month-event-name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .cal-root .cal-agenda-row:is(:hover, :focus-visible) {
+    box-shadow: var(--cal-hover-shadow);
+    outline: none;
+  }
+
+  /* The record's other dates: a soft glow in their own colour, not a border. */
+  .cal-root .cal-event-lit.cal-event-lit {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--cal-bg), 0 4px 14px color-mix(in srgb, var(--cal-event-color) 55%, transparent);
+  }
+
+  .cal-root .cal-event-lit:is(:hover, :focus-visible) {
+    box-shadow: var(--cal-hover-shadow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cal-root .cal-event-timed,
+    .cal-root .cal-allday-pill,
+    .cal-root .cal-month-event,
+    .cal-root .cal-agenda-row {
+      transition: none;
+    }
+  }
+}

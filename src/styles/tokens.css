@@ -31,6 +31,10 @@
     --cal-radius-sm: 8px;
     --cal-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --cal-font-size: 14px;
+    /* How large the date numerals are drawn — the day numbers, the agenda's, the mini-calendar's, the year's. */
+    --cal-date-scale: 1;
+    /* An event under the pointer: lifted off the grid. */
+    --cal-hover-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
 
     --cal-accent: #3b82f6;
     --cal-accent-soft: #dbeafe;

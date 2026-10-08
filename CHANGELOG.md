@@ -14,6 +14,12 @@
 - A click on a timed event reaches it in Chrome: the time grid took the pointer on the press, so the
   release — and the click — landed on the grid; it now takes it only once a press travels far enough to
   be a drag. The «+N» slot reads «+4» in a narrow column, and `sidebar={false}` draws no sidebar toggle.
+- An event under the pointer (or focused) is lifted: a shadow, the column's full width and its whole text —
+  wrapped, not cut — eased in, with no ring (`hover.css`, `--cal-hover-shadow`). A time-grid chip's left,
+  width and height now come from `--cal-chip-left`, `--cal-chip-width`, `--cal-chip-height`, so the hover can
+  grow it; a record's other dates glow in their colour instead of wearing an outline.
+- `--cal-date-scale` (default 1) sizes the date numerals: the day numbers, the day headers, the agenda's, the
+  mini-calendar's and the year's.
 - The docs and a live preview are on GitHub Pages: https://khojiakbarr.github.io/calendar/
 - Latin Uzbek gets CLDR's month and weekday names where the browser's `Intl` has none (Chrome gives
   "M10"): «Oktabr 2026», «8-okt», «payshanba».

@@ -117,6 +117,12 @@ export function eventChipProps<T>(options: EventChipOptions<T>): EventChipProps 
  * than in pixels, so changing the token rescales the whole grid — including
  * chips already on screen — without React re-rendering anything.
  *
+ * The column's left, width and height are handed over as custom properties
+ * (`--cal-chip-left`, `--cal-chip-width`, `--cal-chip-height`) that the
+ * stylesheet reads, rather than as inline `left`/`width`/`height`: an inline
+ * value beats every rule, and a chip under the pointer has to grow to the
+ * column's full width and its text's full height (`hover.css`).
+ *
  * @param options - Minute span, the grid's first minute, and the packing columns.
  * @returns Inline styles for the chip.
  */
@@ -126,15 +132,15 @@ export function blockStyle(options: {
   dayStartMinutes: number
   column: number
   columns: number
-}): CSSProperties {
+}): EventStyle {
   const { startMinutes, endMinutes, dayStartMinutes, column, columns } = options
   const widthPercent = 100 / columns
   return {
     top: `calc(var(--cal-hour-height) * ${(startMinutes - dayStartMinutes) / MINUTES_PER_HOUR})`,
-    height: `calc(var(--cal-hour-height) * ${(endMinutes - startMinutes) / MINUTES_PER_HOUR})`,
     minHeight: `${MIN_CHIP_HEIGHT_PX}px`,
-    left: `${column * widthPercent}%`,
-    width: `calc(${widthPercent}% - ${COLUMN_GAP_PX}px)`,
+    "--cal-chip-height": `calc(var(--cal-hour-height) * ${(endMinutes - startMinutes) / MINUTES_PER_HOUR})`,
+    "--cal-chip-left": `${column * widthPercent}%`,
+    "--cal-chip-width": `calc(${widthPercent}% - ${COLUMN_GAP_PX}px)`,
   }
 }
 
