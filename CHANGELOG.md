@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.7 — 2026-10-08
+
+- The calendar's rounded border shows whole at every corner: the root clips what it holds to its corners
+  (`overflow: clip`), where the toolbar's and the body's square backgrounds used to cover it.
+
 ## 0.2.6 — 2026-10-08
 
 - `onCreateRequest(draft, anchor)` on `Calendar`: a drag or double-click on empty space, or New event (`anchor`

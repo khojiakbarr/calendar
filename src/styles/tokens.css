@@ -13,6 +13,13 @@
     border: 1px solid var(--cal-border);
     border-radius: var(--cal-radius);
     box-shadow: var(--cal-root-shadow);
+    /*
+     * What it holds is cut to its rounded corners: the toolbar and the body
+     * paint square backgrounds, and at the corners they covered the border —
+     * it read as cut off. Floating cards (the tooltip, the editor) are portals
+     * and are not clipped.
+     */
+    overflow: clip;
 
     /* Colors and typography */
     background-color: var(--cal-bg);
