@@ -48,6 +48,7 @@ function makeInstance(overrides: Partial<CalendarInstance> = {}): CalendarInstan
     goPrevious: vi.fn(),
     setFilterText: vi.fn(),
     setResourceHidden: vi.fn(),
+    setResourcesHidden: vi.fn(),
     setShowWeekends: vi.fn(),
     resetPreferences: vi.fn(),
     reload: vi.fn(),

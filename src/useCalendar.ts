@@ -123,7 +123,7 @@ export function useCalendar<TData = unknown>({
   )
 
   const resourceIds = useMemo(() => resources.map((resource) => resource.id), [resources])
-  const { preferences, isCustomised, setView, setShowWeekends, setResourceHidden, resetPreferences } =
+  const { preferences, isCustomised, setView, setShowWeekends, setResourceHidden, setResourcesHidden, resetPreferences } =
     usePreferences({ id, storage, initialPreferences, initialView, resourceIds })
   const { view, showWeekends, hiddenResourceIds } = preferences
 
@@ -218,14 +218,14 @@ export function useCalendar<TData = unknown>({
     () => ({
       id, date, view, range, days, events, resources, hiddenResourceIds, filterText, showWeekends,
       status, error, pendingIds, flags, settings, isCustomised,
-      setDate, setView, goToday, goNext, goPrevious, setFilterText, setResourceHidden,
+      setDate, setView, goToday, goNext, goPrevious, setFilterText, setResourceHidden, setResourcesHidden,
       setShowWeekends, resetPreferences, reload, createEvent, updateEvent, removeEvent,
       resourceOf, colorOf,
     }),
     [
       id, date, view, range, days, events, resources, hiddenResourceIds, filterText, showWeekends,
       status, error, pendingIds, flags, settings, isCustomised, setDate, setView, goToday, goNext,
-      goPrevious, setFilterText, setResourceHidden, setShowWeekends, resetPreferences, reload,
+      goPrevious, setFilterText, setResourceHidden, setResourcesHidden, setShowWeekends, resetPreferences, reload,
       createEvent, updateEvent, removeEvent, resourceOf, colorOf,
     ],
   )

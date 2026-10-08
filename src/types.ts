@@ -74,6 +74,8 @@ export interface CalendarResource {
   name: string
   /** Any CSS colour. */
   color: string
+  /** The sidebar heading it is filed under. Resources sharing one are shown and hidden together. */
+  group?: string | undefined
 }
 
 /** A new event, before the server has given it an id. */

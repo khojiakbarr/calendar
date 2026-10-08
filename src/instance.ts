@@ -73,6 +73,8 @@ export interface CalendarInstance<TData = unknown> {
   goPrevious(): void
   setFilterText(text: string): void
   setResourceHidden(resourceId: string, hidden: boolean): void
+  /** Show or hide several resources in one change — a group's checkbox. */
+  setResourcesHidden(resourceIds: readonly string[], hidden: boolean): void
   setShowWeekends(show: boolean): void
   resetPreferences(): void
   /** Forget every cached range and fetch the visible one again. */

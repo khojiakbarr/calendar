@@ -187,4 +187,12 @@
       margin-bottom: 8px;
     }
   }
+
+  .cal-resource-group-row .cal-resource-name {
+    font-weight: 600;
+  }
+
+  .cal-resource-group > .cal-resource-row:not(.cal-resource-group-row) {
+    padding-inline-start: 20px;
+  }
 }

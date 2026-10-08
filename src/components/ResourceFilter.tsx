@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react"
 import type { CalendarInstance } from "../instance"
-import type { CalendarLabels } from "../types"
+import type { CalendarLabels, CalendarResource } from "../types"
 import { classNames } from "../core/classNames"
+import { groupResources } from "../core/resourceGroups"
 import { useSlotClass } from "./classesContext"
 
 export interface ResourceFilterProps<TData = unknown> {
@@ -25,21 +26,68 @@ export function ResourceFilter<TData = unknown>({ instance, labels }: ResourceFi
   return (
     <div className={classNames("cal-resources", slotClass)}>
       <span className="cal-resources-heading">{labels.resources}</span>
-      {instance.resources.map((resource) => {
-        const checked = !instance.hiddenResourceIds.includes(resource.id)
-        return (
-          <label key={resource.id} className="cal-resource-row" style={resourceColorStyle(resource.color)}>
-            <input
-              type="checkbox"
-              className="cal-checkbox"
-              checked={checked}
-              onChange={(event) => instance.setResourceHidden(resource.id, !event.target.checked)}
-            />
-            <span className="cal-resource-name">{resource.name}</span>
-          </label>
-        )
-      })}
+      {groupResources(instance.resources).map(({ group, resources }) =>
+        group === null ? (
+          resources.map((resource) => <ResourceRow key={resource.id} resource={resource} instance={instance} />)
+        ) : (
+          <div key={group} className="cal-resource-group" role="group" aria-label={group}>
+            <GroupRow group={group} resources={resources} instance={instance} />
+            {resources.map((resource) => (
+              <ResourceRow key={resource.id} resource={resource} instance={instance} />
+            ))}
+          </div>
+        ),
+      )}
     </div>
+  )
+}
+
+/** One resource's checkbox, coloured to match its events. */
+function ResourceRow<TData>({ resource, instance }: { resource: CalendarResource; instance: CalendarInstance<TData> }) {
+  const checked = !instance.hiddenResourceIds.includes(resource.id)
+  return (
+    <label className="cal-resource-row" style={resourceColorStyle(resource.color)}>
+      <input
+        type="checkbox"
+        className="cal-checkbox"
+        checked={checked}
+        onChange={(event) => instance.setResourceHidden(resource.id, !event.target.checked)}
+      />
+      <span className="cal-resource-name">{resource.name}</span>
+    </label>
+  )
+}
+
+/**
+ * A group's own checkbox: ticked while every member shows, mixed while some
+ * do. A click shows the whole group, or hides it when all of it already shows.
+ */
+function GroupRow<TData>({
+  group,
+  resources,
+  instance,
+}: {
+  group: string
+  resources: CalendarResource[]
+  instance: CalendarInstance<TData>
+}) {
+  const shown = resources.filter((resource) => !instance.hiddenResourceIds.includes(resource.id)).length
+  const isAllShown = shown === resources.length
+  const ids = resources.map((resource) => resource.id)
+  return (
+    <label className="cal-resource-row cal-resource-group-row">
+      <input
+        type="checkbox"
+        className="cal-checkbox"
+        checked={isAllShown}
+        ref={(input) => {
+          // `indeterminate` exists only as a DOM property, never as an attribute React could set.
+          if (input) input.indeterminate = shown > 0 && !isAllShown
+        }}
+        onChange={() => instance.setResourcesHidden(ids, isAllShown)}
+      />
+      <span className="cal-resource-name">{group}</span>
+    </label>
   )
 }
 

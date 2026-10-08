@@ -31,7 +31,7 @@ export interface UsePreferencesOptions {
   resourceIds: readonly string[]
 }
 
-/** The preferences plus the four ways the shell changes them. */
+/** The preferences plus the ways the shell changes them. */
 export interface PreferencesController {
   preferences: CalendarPreferences
   /** True once preferences were loaded from storage or changed since mount. */
@@ -39,6 +39,7 @@ export interface PreferencesController {
   setView(view: CalendarView): void
   setShowWeekends(show: boolean): void
   setResourceHidden(resourceId: string, hidden: boolean): void
+  setResourcesHidden(resourceIds: readonly string[], hidden: boolean): void
   resetPreferences(): void
 }
 
@@ -128,6 +129,21 @@ export function usePreferences({
     [change],
   )
 
+  const setResourcesHidden = useCallback(
+    (resourceIds: readonly string[], hidden: boolean) =>
+      change((previous) => {
+        const before = new Set(previous.hiddenResourceIds)
+        const after = new Set(before)
+        for (const resourceId of resourceIds) {
+          if (hidden) after.add(resourceId)
+          else after.delete(resourceId)
+        }
+        if (after.size === before.size && [...after].every((resourceId) => before.has(resourceId))) return null
+        return { ...previous, hiddenResourceIds: [...after] }
+      }),
+    [change],
+  )
+
   const resetPreferences = useCallback(() => {
     storageRef.current.clear(id)
     // hasUnsavedChanges stays false so the debounced save does not write the
@@ -141,6 +157,7 @@ export function usePreferences({
     setView,
     setShowWeekends,
     setResourceHidden,
+    setResourcesHidden,
     resetPreferences,
   }
 }
