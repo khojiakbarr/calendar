@@ -28,3 +28,16 @@ describe("the host's clock", () => {
     expect(container.querySelector('[data-day="2031-05-14"] .cal-month-today')).not.toBeNull()
   })
 })
+
+describe("an inline clock", () => {
+  it("keeps the settings still across renders and reads the latest clock", () => {
+    const later = new Date(2031, 4, 15, 9, 0)
+    const { result, rerender } = renderHook(({ at }: { at: Date }) => useCalendar({ id: "inline", source: EMPTY, now: () => at }), {
+      initialProps: { at: NOW },
+    })
+    const settings = result.current.settings
+    rerender({ at: later })
+    expect(result.current.settings).toBe(settings)
+    expect(result.current.settings.now().getTime()).toBe(later.getTime())
+  })
+})

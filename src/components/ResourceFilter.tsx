@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react"
+import { useId, type CSSProperties } from "react"
 import type { CalendarInstance } from "../instance"
 import type { CalendarLabels, CalendarResource } from "../types"
 import { classNames } from "../core/classNames"
@@ -30,14 +30,34 @@ export function ResourceFilter<TData = unknown>({ instance, labels }: ResourceFi
         group === null ? (
           resources.map((resource) => <ResourceRow key={resource.id} resource={resource} instance={instance} />)
         ) : (
-          <div key={group} className="cal-resource-group" role="group" aria-label={group}>
-            <GroupRow group={group} resources={resources} instance={instance} />
-            {resources.map((resource) => (
-              <ResourceRow key={resource.id} resource={resource} instance={instance} />
-            ))}
-          </div>
+          <GroupSection key={group} group={group} resources={resources} instance={instance} />
         ),
       )}
+    </div>
+  )
+}
+
+/**
+ * One group: its own checkbox, then its members. The section is named by the
+ * group's label rather than by a second copy of the text, so a screen reader
+ * hears the name once.
+ */
+function GroupSection<TData>({
+  group,
+  resources,
+  instance,
+}: {
+  group: string
+  resources: CalendarResource[]
+  instance: CalendarInstance<TData>
+}) {
+  const nameId = useId()
+  return (
+    <div className="cal-resource-group" role="group" aria-labelledby={nameId}>
+      <GroupRow group={group} nameId={nameId} resources={resources} instance={instance} />
+      {resources.map((resource) => (
+        <ResourceRow key={resource.id} resource={resource} instance={instance} />
+      ))}
     </div>
   )
 }
@@ -64,10 +84,12 @@ function ResourceRow<TData>({ resource, instance }: { resource: CalendarResource
  */
 function GroupRow<TData>({
   group,
+  nameId,
   resources,
   instance,
 }: {
   group: string
+  nameId: string
   resources: CalendarResource[]
   instance: CalendarInstance<TData>
 }) {
@@ -86,7 +108,9 @@ function GroupRow<TData>({
         }}
         onChange={() => instance.setResourcesHidden(ids, isAllShown)}
       />
-      <span className="cal-resource-name">{group}</span>
+      <span id={nameId} className="cal-resource-name">
+        {group}
+      </span>
     </label>
   )
 }

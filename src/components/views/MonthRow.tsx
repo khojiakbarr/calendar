@@ -57,6 +57,7 @@ function EventChip<TData>({
   const isLit = useIsLit(event.groupId)
 
   const openFromPointer = (mouseEvent: MouseEvent<HTMLDivElement>): void => {
+    if (mouseEvent.detail > 1) return // the second click of a double-click; the first already opened
     if (drag.wasDragged()) return
     onEventOpen(event, mouseEvent.currentTarget)
   }
@@ -86,7 +87,8 @@ function EventChip<TData>({
       tabIndex={0}
       aria-label={describeEvent(segment, labels, locale)}
       onClick={openFromPointer}
-      onDoubleClick={openFromPointer}
+      // The first click already opened; a double-click must not open again.
+      onDoubleClick={(mouseEvent) => mouseEvent.stopPropagation()}
       onKeyDown={handleKeyDown}
       onMouseEnter={(mouseEvent) => onEventHover(event, mouseEvent.currentTarget)}
       onMouseLeave={() => onEventHover(null, null)}

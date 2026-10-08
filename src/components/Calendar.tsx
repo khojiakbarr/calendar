@@ -65,7 +65,7 @@ export interface CalendarProps<TData = unknown> {
    * opens for an event: the host opens the record its own way — its page,
    * its own dialog. Creating by drag is unaffected.
    */
-  onEventClick?: (event: CalendarEvent<TData>, anchor: HTMLElement) => void
+  onEventClick?: ((event: CalendarEvent<TData>, anchor: HTMLElement) => void) | undefined
 }
 
 /** Whether `target` is a form control a global keyboard shortcut must not fire inside of. */

@@ -1,8 +1,11 @@
 @layer calendar {
   /*
-   * Event looks, in a Gantt chart's words (see `EventAppearance`), the same on
-   * the time grid, the all-day strip, the month and the agenda. Imported after
-   * the views, so inside the one layer these win over their chip rules.
+   * Event looks, in a Gantt chart's words (see `EventAppearance`), on the time
+   * grid, the all-day strip, the month's spans and the agenda's spans. Every
+   * rule here is at least two classes, so it wins over a view's one-class chip
+   * rule whatever order the bundle puts the files in; where a view's own rule
+   * is two classes too (a bar cut at the view's edge), the rule below that
+   * names it carries a third.
    */
 
   /* plan — a dashed outline of what was planned; no fill, as nothing has happened in it yet. */
@@ -14,6 +17,15 @@
 
   .cal-look-plan:is(.cal-event-timed, .cal-allday-pill, .cal-month-event-span):hover {
     background: color-mix(in srgb, var(--cal-event-color) 10%, var(--cal-bg));
+  }
+
+  /* A plan bar cut at the view's edge has no outline on that side, as a filled bar has no border there. */
+  .cal-look-plan:is(.cal-allday-pill.cal-event-continues-before, .cal-month-event-span.cal-continues-before) {
+    border-left-width: 0;
+  }
+
+  .cal-look-plan:is(.cal-allday-pill.cal-event-continues-after, .cal-month-event-span.cal-continues-after) {
+    border-right-width: 0;
   }
 
   /* overrun — the days past the plan, striped over the tone's tint. */
@@ -51,6 +63,11 @@
   .cal-event-lit {
     outline: 2px solid var(--cal-event-color);
     outline-offset: 1px;
+  }
+
+  /* A bar cut at the view's edge is clipped to a chevron, and the clip would take an outside outline with it. */
+  .cal-event-lit:is(.cal-event-continues-before, .cal-event-continues-after) {
+    outline-offset: -2px;
   }
 
   @media (prefers-reduced-motion: no-preference) {

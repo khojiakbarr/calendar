@@ -65,7 +65,7 @@ export interface UseCalendarOptions<TData = unknown> {
   /** Length of an event created with a click. Default 60. */
   defaultEventMinutes?: number
   /** What "now" is. Default the browser's clock. See {@link CalendarSettings.now}. */
-  now?: () => Date
+  now?: (() => Date) | undefined
   /** Told about every rejection, with the action that caused it. */
   onError?: (error: unknown, action: EventSourceAction) => void
 }
@@ -109,6 +109,12 @@ export function useCalendar<TData = unknown>({
   now = systemNow,
   onError,
 }: UseCalendarOptions<TData>): CalendarInstance<TData> {
+  // The clock is read through a ref: a host's inline `now` is a new function on
+  // every render, and settings (and the NowLine's timer) must not churn with it.
+  const nowRef = useRef(now)
+  nowRef.current = now
+  const stableNow = useCallback((): Date => nowRef.current(), [])
+
   const settings: CalendarSettings = useMemo(
     () => ({
       weekStartsOn,
@@ -117,9 +123,9 @@ export function useCalendar<TData = unknown>({
       dayEndHour,
       snapMinutes,
       defaultEventMinutes,
-      now,
+      now: stableNow,
     }),
-    [weekStartsOn, locale, dayStartHour, dayEndHour, snapMinutes, defaultEventMinutes, now],
+    [weekStartsOn, locale, dayStartHour, dayEndHour, snapMinutes, defaultEventMinutes, stableNow],
   )
 
   const resourceIds = useMemo(() => resources.map((resource) => resource.id), [resources])
@@ -132,7 +138,7 @@ export function useCalendar<TData = unknown>({
     weekStartsOn,
     showWeekends,
     initialDate,
-    now,
+    now: stableNow,
   })
 
   const [filterText, setFilterTextState] = useState("")

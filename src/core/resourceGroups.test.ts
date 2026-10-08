@@ -17,3 +17,9 @@ describe("groupResources", () => {
     expect(groupResources([])).toEqual([])
   })
 })
+
+describe("groupResources with a blank group", () => {
+  it("files a blank or whitespace group with the ungrouped", () => {
+    expect(groupResources([resource("a", ""), resource("b", "  ")])).toEqual([{ group: null, resources: [resource("a", ""), resource("b", "  ")] }])
+  })
+})

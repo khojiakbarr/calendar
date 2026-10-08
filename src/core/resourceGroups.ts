@@ -7,8 +7,8 @@ export interface ResourceGroup {
 }
 
 /**
- * The sidebar's sections: resources with no `group` first, as one block with
- * no heading, then each group in the order its first resource appears.
+ * The sidebar's sections: resources with no `group` (or a blank one) first,
+ * as one block with no heading, then each group in the order its first resource appears.
  *
  * @param resources - The calendar's resources, in the host's order.
  * @returns The sections; empty for no resources.
@@ -20,13 +20,15 @@ export function groupResources(resources: readonly CalendarResource[]): Resource
   const ungrouped: CalendarResource[] = []
   const byGroup = new Map<string, CalendarResource[]>()
   for (const resource of resources) {
-    if (resource.group === undefined) {
+    // A blank group would be a heading with no name and a checkbox nobody can name.
+    const group = resource.group?.trim()
+    if (!group) {
       ungrouped.push(resource)
       continue
     }
-    const members = byGroup.get(resource.group)
+    const members = byGroup.get(group)
     if (members) members.push(resource)
-    else byGroup.set(resource.group, [resource])
+    else byGroup.set(group, [resource])
   }
   return [
     ...(ungrouped.length > 0 ? [{ group: null, resources: ungrouped }] : []),

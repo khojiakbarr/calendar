@@ -72,7 +72,10 @@ function AgendaEventRow<TData>({ event, instance, labels, onEventOpen, kind }: A
       data-event-id={event.id}
       data-group={event.groupId}
       aria-label={description}
-      onClick={(clickEvent) => onEventOpen(event, clickEvent.currentTarget)}
+      onClick={(clickEvent) => {
+        if (clickEvent.detail > 1) return // the second click of a double-click; the first already opened
+        onEventOpen(event, clickEvent.currentTarget)
+      }}
     >
       {kind === "span" ? (
         <span className="cal-agenda-span-label">

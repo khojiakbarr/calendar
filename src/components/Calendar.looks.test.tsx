@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
-import type { CalendarEvent, EventSource } from "../types"
+import type { CalendarEvent, CalendarView, EventSource } from "../types"
 import { useCalendar } from "../useCalendar"
 import { Calendar } from "./Calendar"
 
@@ -17,8 +18,9 @@ const EVENTS: CalendarEvent[] = [
 const SOURCE: EventSource = { load: async () => EVENTS }
 const clock = { now: () => NOW }
 
-function Month(props: { onEventClick?: (event: CalendarEvent) => void }) {
-  const instance = useCalendar({ id: "looks", source: SOURCE, now: clock.now, initialView: "month" })
+/** The month opens on today (the 14th); the week and the agenda open on the 8th, where the step's dates are. */
+function Month({ view = "month", ...props }: { view?: CalendarView; onEventClick?: (event: CalendarEvent) => void }) {
+  const instance = useCalendar({ id: `looks-${view}`, source: SOURCE, now: clock.now, initialView: view, initialDate: view === "month" ? NOW : day(8) })
   return <Calendar instance={instance} {...props} />
 }
 
@@ -64,5 +66,15 @@ describe("a host's click", () => {
     fireEvent.click(chip(container, "due"))
     expect(clicked).toEqual(["due"])
     expect(screen.queryByRole("dialog")).toBeNull()
+  })
+})
+
+describe("a host's click on a double-click", () => {
+  it.each(["month", "agenda", "week"] as const)("hands the event over once in the %s view", async (view) => {
+    const clicked: string[] = []
+    const { container } = render(<Month view={view} onEventClick={(event) => clicked.push(event.id)} />)
+    await screen.findAllByText(/Закупка · срок/)
+    await userEvent.setup().dblClick(chip(container, "due"))
+    expect(clicked).toEqual(["due"])
   })
 })

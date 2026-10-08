@@ -139,6 +139,7 @@
   }
 
   .cal-month-event {
+    box-sizing: border-box;
     pointer-events: auto;
     display: flex;
     align-items: center;

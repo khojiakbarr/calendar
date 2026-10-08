@@ -25,8 +25,12 @@ export interface CalendarSettings {
   defaultEventMinutes: number
   /**
    * What "now" is: the day highlighted as today, the now-line, «Today», and
-   * the day a calendar opens on. Default `() => new Date()`. A host whose
-   * users live in another zone than their browser passes its own.
+   * the day a calendar opens on. Default `() => new Date()`.
+   *
+   * The calendar reads the LOCAL fields (year … minute) of the Date this
+   * returns, as it reads every event's `start` and `end`. A host drawing a
+   * zone other than the browser's shifts both alike: its events and its now
+   * become Dates whose local fields are that zone's wall clock.
    */
   now: () => Date
 }

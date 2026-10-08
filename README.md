@@ -74,12 +74,20 @@ Everything below is the demo (`pnpm dev`) running against the in-memory mock ser
 ### A host's clock
 
 The calendar asks `now` what time it is — for the day drawn as today, the
-now-line, the «Today» button and the day it opens on. A host whose users live
-in another zone than their browser passes its own:
+now-line, the «Today» button and the day it opens on. It reads the LOCAL fields
+of the Date it gets back, exactly as it reads every event's `start` and `end`.
+So a host whose users live in another zone than their browser shifts both
+alike: each event, and now, become Dates whose local fields are that zone's
+wall clock (10:00 in Tashkent is `new Date(y, m, d, 10, 0)`, whatever the
+browser's zone):
 
 ```tsx
-useCalendar({ id, source, now: () => wallClockIn("Asia/Tashkent") })
+// toWallClock(instant, zone): a Date whose local fields read the zone's clock — the host's helper.
+useCalendar({ id, source, now: () => toWallClock(new Date(), "Asia/Tashkent") })
 ```
+
+An inline function is fine: the calendar reads it through a ref, so a new one
+on every render costs nothing.
 
 ### Looks — one record, many dates
 
@@ -92,7 +100,7 @@ any number of dates on the calendar and each reads for what it is:
 | `marker` | `tick` · `dot` | a one-day mark with a bar (a limit, a due day) or a dot (a moment, a payment) |
 | `tone` | `primary` · `success` · `danger` · `neutral` | the colour's meaning, from `--cal-accent`, `--cal-success`, `--cal-danger`, `--cal-neutral` |
 | `className` | any | your own look, written in your own (unlayered) CSS |
-| `groupId` | any | the record the date belongs to: pointing at one lights up the others |
+| `groupId` | any | the record the date belongs to: pointing at one lights up the others (day, week, month) |
 
 ```tsx
 const step = [
@@ -104,6 +112,12 @@ const step = [
 
 An overrun is drawn in `danger` unless it names a tone of its own. A colour
 given as `color` wins over the tone, and the tone over the resource's colour.
+
+`appearance` and `marker` shape the chips that are bars: the time grid's,
+the all-day strip's, the month's whole-day spans and the agenda's spans. A
+single-day timed event in the month or the agenda stays a dot and a time.
+The other dates of a record light up while one is under the pointer in the
+day, week and month views.
 
 ### Opening a record yourself
 
