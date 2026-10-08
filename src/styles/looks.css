@@ -37,8 +37,13 @@
     );
   }
 
-  /* A one-day mark: a bar for a limit, a dot for a moment, before the name. */
-  .cal-marker::before {
+  /*
+   * A one-day mark: a bar for a limit, a dot for a moment, before the name.
+   * An agenda row wraps on a phone, so there the mark rides on the label
+   * itself rather than standing alone on a line of its own.
+   */
+  .cal-marker:not(.cal-agenda-row)::before,
+  .cal-agenda-row.cal-marker :is(.cal-agenda-span-label, .cal-agenda-name)::before {
     content: "";
     display: inline-block;
     flex: none;
@@ -47,13 +52,15 @@
     background: var(--cal-event-color);
   }
 
-  .cal-marker-tick::before {
+  .cal-marker-tick:not(.cal-agenda-row)::before,
+  .cal-agenda-row.cal-marker-tick :is(.cal-agenda-span-label, .cal-agenda-name)::before {
     width: 3px;
     height: 0.9em;
     border-radius: 1px;
   }
 
-  .cal-marker-dot::before {
+  .cal-marker-dot:not(.cal-agenda-row)::before,
+  .cal-agenda-row.cal-marker-dot :is(.cal-agenda-span-label, .cal-agenda-name)::before {
     width: 7px;
     height: 7px;
     border-radius: 50%;

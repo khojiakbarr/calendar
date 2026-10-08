@@ -33,7 +33,22 @@ export interface CalendarSettings {
    * become Dates whose local fields are that zone's wall clock.
    */
   now: () => Date
+  /**
+   * The most columns a cluster of overlapping timed events takes in a week
+   * (twice as many in the roomier day view); the rest gather into a «+N»
+   * slot that opens a wider view. Default 3.
+   */
+  maxEventColumns: number
+  /**
+   * How the agenda lists an event spanning several days: under `each` day it
+   * touches, or only under the `first` shown day it touches — a three-month
+   * plan listed once rather than ninety times. Default `each`.
+   */
+  agendaSpans: AgendaSpans
 }
+
+/** See {@link CalendarSettings.agendaSpans}. */
+export type AgendaSpans = "each" | "first"
 
 /**
  * What `useCalendar` returns: state plus every action the shell can take.

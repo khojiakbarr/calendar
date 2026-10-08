@@ -59,7 +59,7 @@ function makeInstance(overrides: Partial<CalendarInstance> = {}): CalendarInstan
     error: null,
     pendingIds: new Set<string>(),
     flags: { create: true, move: true, resize: true, edit: true, remove: true },
-    settings: { weekStartsOn: 1, locale: "en-GB", dayStartHour: 0, dayEndHour: 24, snapMinutes: 15, defaultEventMinutes: 60, now: () => new Date() },
+    settings: { weekStartsOn: 1, locale: "en-GB", dayStartHour: 0, dayEndHour: 24, snapMinutes: 15, defaultEventMinutes: 60, now: () => new Date(), maxEventColumns: 3, agendaSpans: "each" },
     isCustomised: false,
     setDate: vi.fn(),
     setView: vi.fn(),

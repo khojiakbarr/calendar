@@ -373,4 +373,33 @@
     text-overflow: ellipsis;
     line-height: 1;
   }
+
+  /* «+N»: the hidden part of a crowded cluster, in its last column, opening a roomier view. */
+  .cal-timegrid-more {
+    position: absolute;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 4px 2px;
+    border: 1px dashed var(--cal-border-strong);
+    border-radius: var(--cal-event-radius);
+    background-color: var(--cal-bg);
+    color: var(--cal-accent);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .cal-timegrid-more:hover {
+    background-color: var(--cal-hover-bg);
+  }
+
+  .cal-timegrid-more:focus-visible {
+    outline: 2px solid var(--cal-focus-ring);
+    outline-offset: 1px;
+  }
 }

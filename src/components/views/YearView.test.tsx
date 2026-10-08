@@ -7,7 +7,7 @@ import { YearView } from "./YearView"
 
 const ANCHOR = new Date(2022, 5, 15) // June 15 2022 — the year view shows the whole year regardless of the anchored month.
 
-const SETTINGS: CalendarSettings = { weekStartsOn: 1, locale: "en-US", dayStartHour: 0, dayEndHour: 24, snapMinutes: 15, defaultEventMinutes: 60, now: () => new Date() }
+const SETTINGS: CalendarSettings = { weekStartsOn: 1, locale: "en-US", dayStartHour: 0, dayEndHour: 24, snapMinutes: 15, defaultEventMinutes: 60, now: () => new Date(), maxEventColumns: 3, agendaSpans: "each" }
 const FLAGS: Required<CalendarFeatureFlags> = { create: true, move: true, resize: true, edit: true, remove: true }
 
 let nextId = 0

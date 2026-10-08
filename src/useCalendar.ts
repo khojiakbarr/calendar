@@ -5,7 +5,7 @@ import { useCalendarView } from "./core/useCalendarView"
 import { useEventLoading } from "./core/useEventLoading"
 import { useEventMutations } from "./core/useEventMutations"
 import { usePreferences } from "./core/usePreferences"
-import type { CalendarInstance, CalendarSettings } from "./instance"
+import type { AgendaSpans, CalendarInstance, CalendarSettings } from "./instance"
 import type {
   CalendarEvent,
   CalendarFeatureFlags,
@@ -66,6 +66,10 @@ export interface UseCalendarOptions<TData = unknown> {
   defaultEventMinutes?: number
   /** What "now" is. Default the browser's clock. See {@link CalendarSettings.now}. */
   now?: (() => Date) | undefined
+  /** The most columns overlapping events take in a week before a «+N». Default 3. See {@link CalendarSettings.maxEventColumns}. */
+  maxEventColumns?: number | undefined
+  /** List a multi-day event under each day or only the first. Default `"each"`. See {@link CalendarSettings.agendaSpans}. */
+  agendaSpans?: AgendaSpans | undefined
   /** Told about every rejection, with the action that caused it. */
   onError?: (error: unknown, action: EventSourceAction) => void
 }
@@ -107,6 +111,8 @@ export function useCalendar<TData = unknown>({
   snapMinutes = 15,
   defaultEventMinutes = 60,
   now = systemNow,
+  maxEventColumns = 3,
+  agendaSpans = "each",
   onError,
 }: UseCalendarOptions<TData>): CalendarInstance<TData> {
   // The clock is read through a ref: a host's inline `now` is a new function on
@@ -124,8 +130,10 @@ export function useCalendar<TData = unknown>({
       snapMinutes,
       defaultEventMinutes,
       now: stableNow,
+      maxEventColumns,
+      agendaSpans,
     }),
-    [weekStartsOn, locale, dayStartHour, dayEndHour, snapMinutes, defaultEventMinutes, stableNow],
+    [weekStartsOn, locale, dayStartHour, dayEndHour, snapMinutes, defaultEventMinutes, stableNow, maxEventColumns, agendaSpans],
   )
 
   const resourceIds = useMemo(() => resources.map((resource) => resource.id), [resources])

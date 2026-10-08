@@ -545,6 +545,8 @@ describe("settings", () => {
       snapMinutes: 15,
       defaultEventMinutes: 60,
       now: expect.any(Function),
+      maxEventColumns: 3,
+      agendaSpans: "each",
     })
     // The default clock is the browser's.
     expect(Math.abs(result.current.settings.now().getTime() - Date.now())).toBeLessThan(1000)

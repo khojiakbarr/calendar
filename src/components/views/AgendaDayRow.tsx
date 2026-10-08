@@ -24,7 +24,7 @@ export function AgendaDayRow<TData>({ group, instance, labels, onEventOpen }: Ag
   const isToday = isSameDay(group.day, instance.settings.now())
 
   return (
-    <div className={classNames("cal-agenda-day", isToday && "cal-agenda-today")}>
+    <div className={classNames("cal-agenda-day", isToday && "cal-agenda-today")} data-agenda-day={group.day.getTime()}>
       <div className="cal-agenda-day-header">
         <span className="cal-agenda-day-number">{group.day.getDate()}</span>
         <span className="cal-agenda-day-weekday">{formatWeekday(group.day, locale, "long")}</span>

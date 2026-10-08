@@ -3,7 +3,8 @@ import type { MouseEvent as ReactMouseEvent } from "react"
 import { classNames } from "../../core/classNames"
 import { isSameDay, isWeekend, spansWholeDays, withMinutesOfDay } from "../../core/date"
 import { formatTime } from "../../core/format"
-import { layoutDay } from "../../core/layout"
+import { fill } from "../../core/labels"
+import { layoutDay, limitColumns, type ColumnOverflow } from "../../core/layout"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels, EventDraft } from "../../types"
 import { useSlotClass } from "../classesContext"
@@ -104,6 +105,15 @@ export function TimeGrid<T>({ instance, labels, onEventOpen, onCreateRequest, on
     instance.setView("day")
   }
 
+  // A week's columns are narrow: a few side by side, then «+N». The day view has room for twice as many.
+  const isMultiDay = days.length > 1
+  const maxColumns = isMultiDay ? settings.maxEventColumns : settings.maxEventColumns * 2
+  // «+N» opens a roomier view of that day: the day view from a week, the agenda from a day.
+  const handleOverflow = (day: Date): void => {
+    instance.setDate(day)
+    instance.setView(isMultiDay ? "day" : "agenda")
+  }
+
   const handleColumnDoubleClick = (mouse: ReactMouseEvent<HTMLDivElement>, column: number): void => {
     const body = bodyRef.current
     if (!instance.flags.create || !body) return
@@ -170,18 +180,18 @@ export function TimeGrid<T>({ instance, labels, onEventOpen, onCreateRequest, on
                   ))}
                 </div>
 
-                {layoutDay(timedEvents, day).map((block) => (
-                  <TimedEvent
-                    key={block.event.id}
-                    block={block}
-                    instance={instance}
-                    labels={labels}
-                    dayStartMinutes={dayStartMinutes}
-                    onOpen={onEventOpen}
-                    onHover={onEventHover}
-                    wasDragged={wasDragged}
-                  />
-                ))}
+                <DayBlocks
+                  day={day}
+                  events={timedEvents}
+                  maxColumns={maxColumns}
+                  instance={instance}
+                  labels={labels}
+                  dayStartMinutes={dayStartMinutes}
+                  onOpen={onEventOpen}
+                  onHover={onEventHover}
+                  wasDragged={wasDragged}
+                  onOverflow={handleOverflow}
+                />
 
                 {isToday && <NowLine dayStartHour={settings.dayStartHour} dayEndHour={settings.dayEndHour} now={settings.now} />}
 
@@ -201,5 +211,63 @@ export function TimeGrid<T>({ instance, labels, onEventOpen, onCreateRequest, on
         </div>
       </div>
     </div>
+  )
+}
+
+/** What {@link DayBlocks} draws: one day's timed events, packed and capped. */
+interface DayBlocksProps<T> {
+  day: Date
+  events: CalendarEvent<T>[]
+  maxColumns: number
+  instance: CalendarInstance<T>
+  labels: CalendarLabels
+  dayStartMinutes: number
+  onOpen(event: CalendarEvent<T>, anchor: HTMLElement): void
+  onHover(event: CalendarEvent<T> | null, anchor: HTMLElement | null): void
+  wasDragged(): boolean
+  onOverflow(day: Date): void
+}
+
+/**
+ * One day's column of timed events: packed side by side, a crowded cluster
+ * capped at `maxColumns` with a «+N» slot standing for the rest
+ * (`limitColumns`), so six meetings at one hour stay readable.
+ */
+function DayBlocks<T>({ day, events, maxColumns, instance, labels, dayStartMinutes, onOpen, onHover, wasDragged, onOverflow }: DayBlocksProps<T>) {
+  const { visible, overflow } = limitColumns(layoutDay(events, day), maxColumns)
+  return (
+    <>
+      {visible.map((block) => (
+        <TimedEvent
+          key={block.event.id}
+          block={block}
+          instance={instance}
+          labels={labels}
+          dayStartMinutes={dayStartMinutes}
+          onOpen={onOpen}
+          onHover={onHover}
+          wasDragged={wasDragged}
+        />
+      ))}
+      {overflow.map((slot) => (
+        <OverflowSlot key={`${slot.startMinutes}-${slot.column}`} slot={slot} labels={labels} dayStartMinutes={dayStartMinutes} onOpen={() => onOverflow(day)} />
+      ))}
+    </>
+  )
+}
+
+/** The «+N» standing for a cluster's hidden events, in its last column, as tall as they are. */
+function OverflowSlot<T>({ slot, labels, dayStartMinutes, onOpen }: { slot: ColumnOverflow<T>; labels: CalendarLabels; dayStartMinutes: number; onOpen(): void }) {
+  return (
+    <button
+      type="button"
+      className="cal-timegrid-more"
+      style={blockStyle({ startMinutes: slot.startMinutes, endMinutes: slot.endMinutes, dayStartMinutes, column: slot.column, columns: slot.columns })}
+      title={slot.events.map((event) => event.name || labels.untitled).join("\n")}
+      onClick={onOpen}
+      onDoubleClick={(mouse) => mouse.stopPropagation()}
+    >
+      {fill(labels.more, { n: slot.count })}
+    </button>
   )
 }

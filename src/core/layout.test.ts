@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { CalendarEvent } from "../types"
-import { layoutDay } from "./layout"
+import { layoutDay, limitColumns } from "./layout"
 
 let nextId = 0
 
@@ -76,5 +76,40 @@ describe("layoutDay", () => {
     const [block] = layoutDay([event], day)
 
     expect(block).toMatchObject({ startMinutes: 540, endMinutes: 541 })
+  })
+})
+
+describe("limitColumns", () => {
+  const at = (hour: number, minute = 0) => new Date(2022, 2, 15, hour, minute)
+
+  it("keeps a cluster that fits as it is", () => {
+    const blocks = layoutDay([makeEvent(at(9), at(10)), makeEvent(at(9, 30), at(10, 30))], day)
+    const { visible, overflow } = limitColumns(blocks, 3)
+    expect(visible).toEqual(blocks)
+    expect(overflow).toEqual([])
+  })
+
+  it("draws the first columns of a crowded cluster and gathers the rest into one «+N» slot", () => {
+    const six = Array.from({ length: 6 }, () => makeEvent(at(14), at(15)))
+    const { visible, overflow } = limitColumns(layoutDay(six, day), 3)
+    expect(visible).toHaveLength(2)
+    expect(visible.every((block) => block.columns === 3 && block.column < 2)).toBe(true)
+    expect(overflow).toEqual([{ column: 2, columns: 3, startMinutes: 14 * 60, endMinutes: 15 * 60, count: 4, events: expect.any(Array) }])
+  })
+
+  it("limits each crowded cluster on its own and leaves the others alone", () => {
+    const morning = Array.from({ length: 4 }, () => makeEvent(at(9), at(10)))
+    const lunch = [makeEvent(at(12), at(13))]
+    const { visible, overflow } = limitColumns(layoutDay([...morning, ...lunch], day), 3)
+    expect(overflow).toHaveLength(1)
+    expect(overflow[0]?.count).toBe(2)
+    expect(visible.find((block) => block.startMinutes === 12 * 60)).toMatchObject({ column: 0, columns: 1 })
+  })
+
+  it("spans the slot from the first hidden start to the last hidden end", () => {
+    const events = [makeEvent(at(10), at(12)), makeEvent(at(10), at(11)), makeEvent(at(10, 30), at(11, 30)), makeEvent(at(11), at(13))]
+    const { overflow } = limitColumns(layoutDay(events, day), 2)
+    expect(overflow[0]).toMatchObject({ column: 1, columns: 2, startMinutes: 10 * 60 })
+    expect(overflow[0]?.endMinutes).toBe(13 * 60)
   })
 })

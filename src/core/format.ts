@@ -1,4 +1,5 @@
 import type { CalendarView } from "../types"
+import { fallbackWords } from "./localeWords"
 
 const DATE_INPUT_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 const TIME_INPUT_PATTERN = /^(\d{2}):(\d{2})$/
@@ -47,6 +48,13 @@ export function formatTimeRange(start: Date, end: Date, locale: string): string 
  * number); `year` needs only the year.
  */
 export function formatTitle(view: CalendarView, date: Date, locale: string): string {
+  const words = fallbackWords(locale)
+  if (words) {
+    const month = words.months[date.getMonth()] ?? ""
+    if (view === "day") return `${date.getDate()}-${(words.monthsShort[date.getMonth()] ?? "").toLowerCase()}, ${date.getFullYear()}`
+    if (view === "year") return String(date.getFullYear())
+    return `${month} ${date.getFullYear()}`
+  }
   switch (view) {
     case "day":
       return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" }).format(date)
@@ -65,21 +73,32 @@ export function formatTitle(view: CalendarView, date: Date, locale: string): str
 
 /** The weekday name of `d`, e.g. "T" (narrow), "Tue" (short) or "Tuesday" (long). */
 export function formatWeekday(d: Date, locale: string, width: "narrow" | "short" | "long"): string {
+  const words = fallbackWords(locale)
+  if (words) {
+    const names = width === "long" ? words.weekdays : width === "short" ? words.weekdaysShort : words.weekdaysNarrow
+    return names[d.getDay()] ?? ""
+  }
   return new Intl.DateTimeFormat(locale, { weekday: width }).format(d)
 }
 
 /** The month name of `d`, e.g. "Mar" (short) or "March" (long). */
 export function formatMonth(d: Date, locale: string, width: "short" | "long"): string {
+  const words = fallbackWords(locale)
+  if (words) return (width === "long" ? words.months : words.monthsShort)[d.getMonth()] ?? ""
   return new Intl.DateTimeFormat(locale, { month: width }).format(d)
 }
 
 /** `d` as a short month and day, e.g. "Mar 15" — used for the 1st-of-month label in month view. */
 export function formatDayMonth(d: Date, locale: string): string {
+  const words = fallbackWords(locale)
+  if (words) return `${d.getDate()}-${(words.monthsShort[d.getMonth()] ?? "").toLowerCase()}`
   return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(d)
 }
 
 /** `d` as a full, screen-reader-friendly date, e.g. "Tuesday, March 15, 2022". */
 export function formatFullDate(d: Date, locale: string): string {
+  const words = fallbackWords(locale)
+  if (words) return `${words.weekdays[d.getDay()] ?? ""}, ${d.getDate()}-${(words.months[d.getMonth()] ?? "").toLowerCase()}, ${d.getFullYear()}`
   return new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(d)
 }
 

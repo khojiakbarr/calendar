@@ -120,3 +120,56 @@ export function layoutDay<T>(events: CalendarEvent<T>[], day: Date): TimedBlock<
   const clusters = clusterEvents(blocks)
   return clusters.flatMap((cluster) => packCluster(cluster))
 }
+
+/** Where a crowded cluster's hidden events are summed up: one «+N» slot in its last column. */
+export interface ColumnOverflow<T = unknown> {
+  /** The slot's column — the last one drawn. */
+  column: number
+  /** The cluster's column count once limited, so the slot is as wide as the chips beside it. */
+  columns: number
+  /** From the first hidden event's start to the last hidden end, in the day's minutes. */
+  startMinutes: number
+  endMinutes: number
+  /** How many events the slot stands for. */
+  count: number
+  events: CalendarEvent<T>[]
+}
+
+/**
+ * Caps how many columns a cluster of overlapping events is drawn in. Six
+ * meetings at 14:00 in a week's column would be six slivers nobody can read;
+ * this keeps the first `maxColumns - 1` columns and gathers the rest into one
+ * «+N» slot in the last column, which the time grid draws as a button into a
+ * roomier view. A cluster that fits is returned as it was.
+ *
+ * @param blocks - A day's packed blocks, as {@link layoutDay} returns them.
+ * @param maxColumns - The most columns a cluster may take; at least 1.
+ * @returns The blocks to draw and the slots that stand for the rest.
+ *
+ * @example
+ * const { visible, overflow } = limitColumns(layoutDay(events, day), 3)
+ */
+export function limitColumns<T>(blocks: TimedBlock<T>[], maxColumns: number): { visible: TimedBlock<T>[]; overflow: ColumnOverflow<T>[] } {
+  const limit = Math.max(1, Math.floor(maxColumns))
+  const kept = limit - 1
+  const visible: TimedBlock<T>[] = []
+  const overflow: ColumnOverflow<T>[] = []
+  for (const cluster of clusterEvents(blocks)) {
+    const columns = cluster[0]?.columns ?? 1
+    if (columns <= limit) {
+      visible.push(...cluster)
+      continue
+    }
+    const hidden = cluster.filter((block) => block.column >= kept)
+    visible.push(...cluster.filter((block) => block.column < kept).map((block) => ({ ...block, columns: limit })))
+    overflow.push({
+      column: kept,
+      columns: limit,
+      startMinutes: Math.min(...hidden.map((block) => block.startMinutes)),
+      endMinutes: Math.max(...hidden.map((block) => block.endMinutes)),
+      count: hidden.length,
+      events: hidden.map((block) => block.event),
+    })
+  }
+  return { visible, overflow }
+}

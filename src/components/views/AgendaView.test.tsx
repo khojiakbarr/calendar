@@ -28,7 +28,7 @@ function createInstance(overrides: Partial<CalendarInstance<unknown>> = {}): Cal
     error: null,
     pendingIds: new Set(),
     flags: { create: true, move: true, resize: true, edit: true, remove: true },
-    settings: { weekStartsOn: 1, locale: "en-US", dayStartHour: 0, dayEndHour: 24, snapMinutes: 15, defaultEventMinutes: 60, now: () => new Date() },
+    settings: { weekStartsOn: 1, locale: "en-US", dayStartHour: 0, dayEndHour: 24, snapMinutes: 15, defaultEventMinutes: 60, now: () => new Date(), maxEventColumns: 3, agendaSpans: "each" },
     isCustomised: false,
     setDate: vi.fn(),
     setView: vi.fn(),
@@ -115,5 +115,18 @@ describe("AgendaView", () => {
     render(<AgendaView instance={instance} labels={defaultLabels} onEventOpen={vi.fn()} />)
 
     expect(screen.getByText(defaultLabels.noEvents)).toBeInTheDocument()
+  })
+})
+
+describe("AgendaView with long spans listed once", () => {
+  it("lists a span only under the first shown day it touches when asked to", () => {
+    const span: CalendarEvent = { id: "plan", name: "Quarter plan", allDay: true, start: new Date(2022, 1, 20), end: new Date(2022, 4, 1) }
+    const instance = createInstance({ days: [day1, day2, day3], events: [span] })
+    const once = { ...instance, settings: { ...instance.settings, agendaSpans: "first" as const } }
+
+    render(<AgendaView instance={once} labels={defaultLabels} onEventOpen={vi.fn()} />)
+
+    expect(document.querySelectorAll(".cal-agenda-day")).toHaveLength(1)
+    expect(screen.getAllByText(/Quarter plan/)).toHaveLength(1)
   })
 })
