@@ -1,4 +1,4 @@
-# @khojiakbarr/calendar
+# @hojiakbar_dev/calendar
 
 A React calendar that keeps events on your server instead of your client. It asks for the
 visible range, caches what it has already loaded, and applies every drag, resize and edit
@@ -8,12 +8,12 @@ Day, week, month, year and agenda views. Ships as a hook plus an optional styled
 you can take the behaviour and write your own markup.
 
 ```bash
-npm i @khojiakbarr/calendar
+npm i @hojiakbar_dev/calendar
 ```
 
 ```tsx
-import { Calendar, useCalendar, localStoragePreferences } from "@khojiakbarr/calendar"
-import "@khojiakbarr/calendar/styles.css"
+import { Calendar, useCalendar, localStoragePreferences } from "@hojiakbar_dev/calendar"
+import "@hojiakbar_dev/calendar/styles.css"
 
 const resources = [
   { id: "dr-lee", name: "Dr. Lee", color: "#3b82f6" },
@@ -66,6 +66,62 @@ Everything below is the demo (`pnpm dev`) running against the in-memory mock ser
 | **Keyboard navigation** | ← and → move to the previous/next period, `t` jumps to today, `Escape` closes whatever is open (the editor, the settings menu, an in-progress drag). |
 | **Remembers itself** | View, weekend visibility and hidden resources persist per calendar, per user. The anchor date deliberately does not — see "Preferences". |
 | **Light and dark** | Follows `prefers-color-scheme` by default; pin it with `theme`. |
+
+---
+
+## What 0.2 adds
+
+### A host's clock
+
+The calendar asks `now` what time it is — for the day drawn as today, the
+now-line, the «Today» button and the day it opens on. A host whose users live
+in another zone than their browser passes its own:
+
+```tsx
+useCalendar({ id, source, now: () => wallClockIn("Asia/Tashkent") })
+```
+
+### Looks — one record, many dates
+
+An event can be drawn the way a Gantt chart draws work, so one record can put
+any number of dates on the calendar and each reads for what it is:
+
+| Field | Values | Drawn as |
+|---|---|---|
+| `appearance` | `plan` · `actual` · `overrun` | a dashed outline · the ordinary filled chip · striped red |
+| `marker` | `tick` · `dot` | a one-day mark with a bar (a limit, a due day) or a dot (a moment, a payment) |
+| `tone` | `primary` · `success` · `danger` · `neutral` | the colour's meaning, from `--cal-accent`, `--cal-success`, `--cal-danger`, `--cal-neutral` |
+| `className` | any | your own look, written in your own (unlayered) CSS |
+| `groupId` | any | the record the date belongs to: pointing at one lights up the others |
+
+```tsx
+const step = [
+  { id: "s1:plan", name: "Закупка · план", start, end: planEnd, allDay: true, appearance: "plan", groupId: "s1" },
+  { id: "s1:late", name: "Закупка · просрочка", start: planEnd, end: doneOn, allDay: true, appearance: "overrun", groupId: "s1" },
+  { id: "s1:due", name: "Закупка · срок", start: due, end: addDays(due, 1), allDay: true, marker: "tick", groupId: "s1" },
+]
+```
+
+An overrun is drawn in `danger` unless it names a tone of its own. A colour
+given as `color` wins over the tone, and the tone over the resource's colour.
+
+### Opening a record yourself
+
+```tsx
+<Calendar instance={calendar} onEventClick={(event) => navigate(`/tasks/${event.id}`)} />
+```
+
+With `onEventClick` the calendar's editor never opens for an event; the host
+opens its own page or dialog. A source with only `load` offers no drag, no
+resize, no «+ New event» and no editor at all.
+
+### Grouped resources
+
+Give resources a `group` and the sidebar files them under a heading with a
+checkbox of its own: ticked while all of the group shows, mixed while part of
+it does, and one click shows or hides the whole group
+(`instance.setResourcesHidden(ids, hidden)`). Hidden resources are remembered
+as before.
 
 ---
 
@@ -234,7 +290,7 @@ Same shape as the data-table's layout storage: keyed by the calendar's `id`, so 
 serves every calendar in an application.
 
 ```tsx
-import { localStoragePreferences } from "@khojiakbarr/calendar"
+import { localStoragePreferences } from "@hojiakbar_dev/calendar"
 
 useCalendar({ id: "clinic", storage: localStoragePreferences(), /* … */ })
 ```
@@ -361,7 +417,7 @@ recompose them around the same instance instead of reimplementing drag-to-create
 placement from nothing:
 
 ```tsx
-import { useCalendar, Toolbar, WeekView, EventEditor } from "@khojiakbarr/calendar"
+import { useCalendar, Toolbar, WeekView, EventEditor } from "@hojiakbar_dev/calendar"
 
 const instance = useCalendar({ id: "clinic", source, resources })
 

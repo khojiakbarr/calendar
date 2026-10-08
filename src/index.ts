@@ -24,6 +24,9 @@ export type {
   EventPatch,
   EventSource,
   EventSourceAction,
+  EventAppearance,
+  EventMarker,
+  EventTone,
   LoadStatus,
   PreferenceStorage,
   WeekDay,
@@ -69,6 +72,9 @@ export {
   formatDayMonth,
   formatFullDate,
 } from "./core/format"
+export { eventLookClasses, TONE_COLOR, toneOf } from "./core/looks"
+export { groupResources } from "./core/resourceGroups"
+export type { ResourceGroup } from "./core/resourceGroups"
 export { layoutDay } from "./core/layout"
 export type { TimedBlock } from "./core/layout"
 export { layoutSegments, limitRows } from "./core/spans"

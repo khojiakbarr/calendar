@@ -1,0 +1,117 @@
+name: Release to npm
+
+# A release is a tag, so the thing published is always a named, immutable
+# point in history rather than "whatever main held at the time".
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  # `id-token: write` is what makes this publish work WITHOUT a token in a
+  # secret: npm's trusted publishing exchanges a short-lived, signed OIDC
+  # token minted for this repository and this workflow file. Nothing long-lived
+  # exists to leak or rotate, and the account's 2FA stays intact — an npm
+  # automation token that bypasses 2FA is exactly what npm is restricting.
+  id-token: write
+  contents: read
+
+concurrency:
+  # Never two publishes at once. A publish is irreversible, so a queued run
+  # waits rather than being cancelled: cancelling mid-publish could leave the
+  # registry and the tag disagreeing.
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pnpm and Node
+        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
+        with:
+          version: 11
+          runtime: node@24
+          cache: true
+          require-lockfile: true
+
+      # The npm that runs the publish is PINNED, and invoked through npx so no
+      # PATH ordering decides it. Two attempts were lost to that: `pnpm/setup`
+      # installs the runtime, not npm, so the runner had Node v24.21.0 with npm
+      # 10.9.8; and `npm install -g npm@^11.5.1` then succeeded without
+      # changing what `npm` resolved to. Trusted publishing needs 11.5.1+, and
+      # an older npm does not fail loudly — it ignores the OIDC environment,
+      # looks for a token, finds none, and reports ENEEDAUTH, which sends
+      # whoever reads it hunting for a secret that was never the point.
+      #
+      # The version range below is the requirement, stated once. If npx cannot
+      # satisfy it the step fails saying so, which is the whole guard.
+      - name: Record the toolchain
+        run: |
+          echo "node $(node --version)"
+          echo "npm (pinned) $(npx --yes npm@^11.5.1 --version)"
+
+      # The tag is the version people will install. If it disagrees with
+      # package.json, one of the two is a lie, and the registry keeps whichever
+      # package.json said — silently, under a tag that now points at something
+      # else. Cheaper to refuse than to explain later.
+      - name: Check the tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          echo "tag $tag, package.json $pkg"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag v$tag does not match package.json version $pkg."
+            exit 1
+          fi
+
+      # A version can reach npm by hand — 0.2.0 did: the first publish has to,
+      # as npm links a trusted publisher only to a package that exists — and is
+      # tagged afterwards. npm refuses to publish a version twice, so
+      # without this the retro-tag would turn the run red for a release that
+      # already succeeded. Only the PUBLISH is skipped: the checks below still
+      # run against the tagged commit, which is worth knowing either way.
+      - name: Skip the publish if this version is already on npm
+        id: published
+        run: |
+          set -euo pipefail
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          # Compared by VALUE, not by exit code, so any quirk of npm or the
+          # registry can only err towards publishing — which npm then refuses
+          # if the version really exists — never towards silently skipping a
+          # release that has not happened.
+          found="$(npm view "$name@$version" version 2>/dev/null || true)"
+          if [ "$found" = "$version" ]; then
+            echo "::notice::$name@$version is already on npm; checks run, publish skipped."
+            echo "already=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      # Run again even though CI already did. A tag can point at a commit CI
+      # never saw, and a publish cannot be taken back.
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm run build
+
+      # `npm publish`, not `pnpm publish`: the OIDC exchange lives in the npm
+      # CLI. `--access public` is already in package.json's publishConfig, and
+      # provenance is attached automatically on a trusted publish, so neither
+      # flag belongs here.
+      #
+      # `prepublishOnly` would rebuild and retest everything a third time, and
+      # both have already run above against this exact tree.
+      - name: Publish
+        if: steps.published.outputs.already != 'true'
+        run: npx --yes npm@^11.5.1 publish --ignore-scripts
