@@ -1,15 +1,15 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import { Demo } from "./Demo"
+import { DocsPage } from "./DocsPage"
 import "../styles/index.css"
-import "./site.css"
-import "./demo.css"
+import "../demo/site.css"
+import "./docs.css"
 
 const container = document.getElementById("root")
 if (!container) throw new Error("Missing #root element")
 
 createRoot(container).render(
   <StrictMode>
-    <Demo />
+    <DocsPage />
   </StrictMode>,
 )

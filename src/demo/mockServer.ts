@@ -1,14 +1,18 @@
-import type { CalendarEvent, CalendarResource, DateRange, EventDraft, EventPatch, EventSource } from "../types"
+import type { CalendarEvent, CalendarResource, DateRange, EventAppearance, EventDraft, EventPatch, EventSource } from "../types"
 import { addDays, startOfDay, withMinutesOfDay, overlaps } from "../core/date"
 
 /**
- * Three sample resources (calendars) for the demo.
- * The calendar uses these to color-code events in the UI.
+ * Six sample resources (calendars) in two groups for the demo.
+ * The calendar uses these to colour-code events, and the sidebar files them
+ * under a heading each, with a checkbox that shows or hides the whole group.
  */
 export const demoResources: CalendarResource[] = [
-  { id: "team", name: "Bryntum team", color: "#3b82f6" },
-  { id: "hotel", name: "Hotel Park", color: "#f59e0b" },
-  { id: "michael", name: "Michael Johnson", color: "#ef4444" },
+  { id: "team", name: "Bryntum team", color: "#3b82f6", group: "Trip" },
+  { id: "hotel", name: "Hotel Park", color: "#f59e0b", group: "Trip" },
+  { id: "michael", name: "Michael Johnson", color: "#ef4444", group: "Trip" },
+  { id: "procurement", name: "Procurement", color: "#8b5cf6", group: "Project Atlas" },
+  { id: "production", name: "Production", color: "#0d9488", group: "Project Atlas" },
+  { id: "logistics", name: "Logistics", color: "#db2777", group: "Project Atlas" },
 ]
 
 /**
@@ -183,12 +187,65 @@ export function createMockServer(options?: {
   }
 }
 
+/** One record of a project plan, as the Gantt-like sample data describes it. */
+interface RecordSpec {
+  /** Shared by every date of the record (`groupId`): pointing at one lights up the others. */
+  key: string
+  name: string
+  resourceId: string
+  /** First planned day, and the day after the last (the calendar's exclusive `end`). */
+  plan: readonly [Date, Date]
+  /** The day after the last day of real work; later than the plan's end means an overrun. */
+  actualEnd: Date
+  /** The day the deadline tick sits on. */
+  due: Date
+  /** The day a payment dot sits on, once paid. */
+  paid?: Date
+}
+
+/**
+ * One record's dates as whole-day events: its plan (dashed), the work that
+ * happened inside the plan, the days past it (striped red) if it ran late, a
+ * deadline tick and a payment dot.
+ *
+ * @param spec - The record's days.
+ * @param nextId - Hands out the server-side id of each event.
+ * @returns Up to five events, all with the record's `groupId`.
+ *
+ * @example
+ * ganttRecord({ key: "atlas-1", name: "Atlas · Procurement", resourceId: "procurement", plan: [mon, thu], actualEnd: fri, due: wed }, nextId)
+ */
+function ganttRecord(spec: RecordSpec, nextId: () => string): CalendarEvent[] {
+  const { key, name, resourceId, plan, actualEnd, due, paid } = spec
+  const whole = (suffix: string, start: Date, end: Date, look: Partial<CalendarEvent>): CalendarEvent => ({
+    id: nextId(),
+    name: `${name} · ${suffix}`,
+    start: startOfDay(start),
+    end: startOfDay(end),
+    allDay: true,
+    resourceId,
+    groupId: key,
+    ...look,
+  })
+  const workedEnd = actualEnd.getTime() < plan[1].getTime() ? actualEnd : plan[1]
+  return [
+    whole("plan", plan[0], plan[1], { appearance: "plan" }),
+    whole("actual", plan[0], workedEnd, { appearance: "actual" }),
+    ...(actualEnd.getTime() > plan[1].getTime() ? [whole("overrun", plan[1], actualEnd, { appearance: "overrun" })] : []),
+    whole("due", due, addDays(due, 1), { marker: "tick", tone: "danger" }),
+    ...(paid ? [whole("paid", paid, addDays(paid, 1), { marker: "dot", tone: "success" })] : []),
+  ]
+}
+
 /**
  * Generate deterministic sample calendar events around an anchor date.
  *
  * Creates 8 weeks of events (4 before, 4 after the anchor):
  * - Every weekday: Breakfast, Lunch, Dinner at Hotel Park
  * - Anchor week: Hackathon (all-day), Gantt review (3-day), Roadmapping, Review tickets, Active programming, etc.
+ * - Anchor week, Wednesday 16:00: six meetings in one hour, which a week gathers into «+N»
+ * - Project Atlas: Gantt-like records — a plan, the work, an overrun, a deadline tick and a payment
+ *   dot, sharing one `groupId` — in the anchor week (timed), the week before and the weeks after
  * - Other weeks: Weekly sync (Mon 11:00–12:00) and a 2-day Offsite in the second week after
  *
  * All times are in local time. Event IDs are `seed-<n>` for deterministic test data.
@@ -217,6 +274,7 @@ export function seedEvents(anchor: Date): CalendarEvent[] {
     endMinutes: number,
     resourceId?: string,
     allDay: boolean = false,
+    look: Partial<CalendarEvent> = {},
   ) => {
     const start = withMinutesOfDay(day, startMinutes)
     const end = withMinutesOfDay(day, endMinutes)
@@ -226,6 +284,7 @@ export function seedEvents(anchor: Date): CalendarEvent[] {
       start,
       end,
       allDay,
+      ...look,
     }
     if (resourceId) {
       event.resourceId = resourceId
@@ -298,6 +357,76 @@ export function seedEvents(anchor: Date): CalendarEvent[] {
   addEvent("Dentist", addDays(anchorMonday, 3), 15 * 60, 16 * 60, "michael")
   addEvent("Client call", addDays(anchorMonday, 4), 14 * 60 + 30, 15 * 60 + 30, "michael")
   addSpan("React conference", addDays(anchorMonday, 9), 2, "team")
+
+  // A crowded hour: six meetings at 16:00 on Wednesday, more than a week's column can show side by side.
+  const wednesday = addDays(anchorMonday, 2)
+  for (const [name, resourceId] of [
+    ["Sprint planning", "team"],
+    ["Design crit", "team"],
+    ["Data sync", "team"],
+    ["Hiring panel", "michael"],
+    ["1:1 with Alex", "michael"],
+    ["Vendor call", "hotel"],
+  ] as const) {
+    addEvent(name, wednesday, 16 * 60, 17 * 60, resourceId)
+  }
+
+  // Project Atlas, in the anchor week: a site inspection by the clock. It was planned 10:30–12:30,
+  // began late and ran over; its report is due on Friday and the invoice is paid on Saturday.
+  const thursday = addDays(anchorMonday, 3)
+  const inspection = { resourceId: "production", groupId: "atlas-inspection" } as const
+  const inspect = (suffix: string, from: number, to: number, appearance: EventAppearance) =>
+    addEvent(`Atlas · Site inspection · ${suffix}`, thursday, from, to, inspection.resourceId, false, { groupId: inspection.groupId, appearance })
+  inspect("plan", 10.5 * 60, 12.5 * 60, "plan")
+  inspect("actual", 11 * 60, 12.5 * 60, "actual")
+  inspect("overrun", 12.5 * 60, 14 * 60, "overrun")
+  for (const [suffix, offset, look] of [
+    ["report due", 4, { marker: "tick", tone: "danger" }],
+    ["paid", 5, { marker: "dot", tone: "success" }],
+  ] as const) {
+    const day = addDays(anchorMonday, offset)
+    addEvent(`Atlas · Site inspection · ${suffix}`, day, 0, 24 * 60, inspection.resourceId, true, { groupId: inspection.groupId, ...look })
+  }
+
+  // Project Atlas, over whole days: one that ran late and is paid, one on time and paid, one early and unpaid.
+  const nextId = () => `seed-${id++}`
+  events.push(
+    ...ganttRecord(
+      {
+        key: "atlas-procurement",
+        name: "Atlas · Procurement",
+        resourceId: "procurement",
+        plan: [addDays(anchorMonday, 7), addDays(anchorMonday, 10)],
+        actualEnd: addDays(anchorMonday, 12),
+        due: addDays(anchorMonday, 9),
+        paid: addDays(anchorMonday, 13),
+      },
+      nextId,
+    ),
+    ...ganttRecord(
+      {
+        key: "atlas-foundations",
+        name: "Atlas · Foundations",
+        resourceId: "production",
+        plan: [addDays(anchorMonday, -7), addDays(anchorMonday, -3)],
+        actualEnd: addDays(anchorMonday, -3),
+        due: addDays(anchorMonday, -4),
+        paid: addDays(anchorMonday, -2),
+      },
+      nextId,
+    ),
+    ...ganttRecord(
+      {
+        key: "atlas-fitout",
+        name: "Atlas · Fit-out",
+        resourceId: "logistics",
+        plan: [addDays(anchorMonday, 14), addDays(anchorMonday, 18)],
+        actualEnd: addDays(anchorMonday, 17),
+        due: addDays(anchorMonday, 17),
+      },
+      nextId,
+    ),
+  )
 
   // Other weeks: Weekly sync (Mon 11:00–12:00) and Offsite (2-day, all-day in second week after)
   for (let weekOffset of [-4, -3, -2, -1, 1, 2, 3, 4]) {

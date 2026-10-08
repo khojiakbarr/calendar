@@ -7,6 +7,9 @@ optimistically — rolling back if the server says no.
 Day, week, month, year and agenda views. Ships as a hook plus an optional styled shell, so
 you can take the behaviour and write your own markup.
 
+**[Live preview](https://khojiakbarr.github.io/calendar/)** — every view against an in-memory mock server ·
+**[Documentation](https://khojiakbarr.github.io/calendar/docs.html)** — install, the server contract, event looks, theming, with live examples
+
 ```bash
 npm i @hojiakbar_dev/calendar
 ```
@@ -37,8 +40,10 @@ function ClinicCalendar({ source }) {
 
 ## Preview
 
-Everything below is the demo (`pnpm dev`) running against the in-memory mock server in
-`src/demo/mockServer.ts` — the same `EventSource` contract a real backend implements.
+Everything below is the demo — [hosted here](https://khojiakbarr.github.io/calendar/), or `pnpm dev`
+on your machine — running against the in-memory mock server in `src/demo/mockServer.ts`: the same
+`EventSource` contract a real backend implements. The [docs](https://khojiakbarr.github.io/calendar/docs.html)
+build on it with a live, editable example beside every feature.
 
 ![Week view](https://raw.githubusercontent.com/khojiakbarr/calendar/main/docs/week-light.png)
 
@@ -136,6 +141,16 @@ checkbox of its own: ticked while all of the group shows, mixed while part of
 it does, and one click shows or hides the whole group
 (`instance.setResourcesHidden(ids, hidden)`). Hidden resources are remembered
 as before.
+
+### Crowded hours and the agenda
+
+A cluster of overlapping timed events takes at most `maxEventColumns` columns (default 3 in a
+week, twice that in the day view); the rest gather into one «+N» slot that opens the day view
+from a week, or the agenda from a day. The agenda opens on today when the month shown holds it,
+and `agendaSpans: "first"` lists a multi-day event once, under the first shown day it touches,
+rather than under every day (`"each"`, the default). In Latin Uzbek (`locale: "uz"`) the month and
+weekday names come from built-in CLDR words where the browser's `Intl` has none — Chrome answers
+"M10" for October.
 
 ---
 
@@ -341,17 +356,19 @@ Three layers, from least to most specific.
 the calendar looks finished out of the box and restyles without touching its source:
 
 ```css
-.my-app {
-  --cal-accent: var(--primary);
+.cal-root {
+  --cal-accent: #7c3aed;
   --cal-radius: 6px;
   --cal-hour-height: 56px;
 }
 ```
 
-The event editor and the hover tooltip are portaled to `<body>`, outside whatever element
-renders `<Calendar>` — an override scoped to an ancestor of the calendar (`.my-app` above,
-say) never reaches them. Put token overrides on `:root`, on `body`, or on `.cal-root` itself
-(which the portaled layers also carry, precisely so they stay in the same token scope).
+Target `.cal-root` itself, in an unlayered stylesheet (see the cascade layer, below). A value set
+on an ancestor — `:root`, `body` or your own wrapper — never arrives: `.cal-root` declares every
+token on its own element, and an element's own declaration beats an inherited one. The event
+editor and the hover tooltip are portaled to `<body>`, outside whatever element renders
+`<Calendar>`, but they carry `.cal-root` too, so one `.cal-root` rule themes every layer. A
+`className` on `<Calendar>` reaches the calendar and not those two.
 
 <details>
 <summary>All tokens</summary>
@@ -479,6 +496,9 @@ what to report as a "+N more" count per column.
 | `dayEndHour` | `number` | `24` | Hour boundary the time grid ends at. |
 | `snapMinutes` | `number` | `15` | Drag and create gestures round to this many minutes. |
 | `defaultEventMinutes` | `number` | `60` | Length of an event created with a click. |
+| `now` | `() => Date` | the browser's clock | What "now" is. Reads the local fields of the Date it returns; see "A host's clock". |
+| `maxEventColumns` | `number` | `3` | Columns a cluster of overlapping timed events takes in a week (twice that in the day view) before the rest gather into «+N». |
+| `agendaSpans` | `"each" \| "first"` | `"each"` | List a multi-day event under every day it touches, or once under the first. |
 | `onError` | `(error: unknown, action: EventSourceAction) => void` | — | Called on every rejection from the source. |
 
 Returns a `CalendarInstance<TData>` — see below.
@@ -495,6 +515,7 @@ Returns a `CalendarInstance<TData>` — see below.
 | `sidebar` | `boolean` | `true` | Whether the sidebar can be shown at all. |
 | `height` | `number \| string` | auto | CSS height of the root; omit to fill the parent (min 480px). |
 | `editorPresentation` | `"modal" \| "sheet" \| "auto"` | `"auto"` | How the event editor's `Dialog` presents itself; `"auto"` is a bottom sheet under a 640px viewport, a centred modal otherwise. |
+| `onEventClick` | `(event, chip) => void` | — | A click or Enter on an event. Given, the editor never opens; the host opens its own record. |
 
 ### `CalendarInstance`
 

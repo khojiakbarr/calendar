@@ -1,0 +1,73 @@
+name: Deploy site to GitHub Pages
+
+# Deploys the live preview and the docs (vite.demo.config.ts) to
+# https://khojiakbarr.github.io/calendar/ whenever main changes, plus
+# workflow_dispatch so it can be re-run by hand without an empty commit.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The minimum the official Pages flow needs: read the repo, write the Pages
+# deployment, and mint the OIDC token deploy-pages authenticates with.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One Pages deployment at a time, and never cancel one already rolling out, so a
+# deploy always finishes instead of being pre-empted by the next push.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pnpm and Node
+        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
+        with:
+          version: 11
+          runtime: node@24
+          cache: true
+          require-lockfile: true
+
+      # Gate the deploy on the checks CI already requires: Pages deploys are not
+      # reviewed like a pull request, so a broken commit would go live unseen.
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build site
+        run: pnpm run build:demo
+
+      # Pages runs uploads through Jekyll, which silently drops any path that
+      # starts with an underscore. Switch it off rather than rely on today's
+      # output never having one.
+      - name: Disable Jekyll processing
+        run: touch demo-dist/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: demo-dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -1,0 +1,140 @@
+/*
+ * What the site's two pages share: tokens, the page base and the masthead.
+ * The calendar itself is styled only by ../styles/index.css (in `@layer
+ * calendar`); everything here is unlayered, so it wins over a `cal-*` rule if
+ * a selector ever reaches into the calendar — keep selectors out of `.cal-root`.
+ */
+
+:root {
+  color-scheme: light dark;
+  --site-bg: #f5f6f8;
+  --site-surface: #ffffff;
+  --site-sunken: #eceef2;
+  --site-fg: #18181b;
+  --site-fg-soft: #35363c;
+  --site-muted: #5a5f6a;
+  --site-border: #d9dce2;
+  --site-border-control: #8a8f9a;
+  --site-accent: #2563eb;
+  --site-accent-fg: #ffffff;
+  --site-accent-soft: #e4ecff;
+  --site-link: #1d4ed8;
+  --site-danger: #b91c1c;
+  --site-radius: 8px;
+  --site-header-height: 56px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --site-bg: #0f1115;
+    --site-surface: #15181f;
+    --site-sunken: #1d2129;
+    --site-fg: #fafafa;
+    --site-fg-soft: #d4d6dc;
+    --site-muted: #a1a6b1;
+    --site-border: #2f343e;
+    --site-border-control: #707683;
+    --site-accent: #3b82f6;
+    --site-accent-soft: #1b2a47;
+    --site-link: #8fb0ff;
+    --site-danger: #f87171;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  background: var(--site-bg);
+  color: var(--site-fg);
+}
+
+.site-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Page chrome only: the calendar draws its own focus ring, and this rule is unlayered. */
+.site-header :focus-visible,
+.site-focusable:focus-visible {
+  outline: 2px solid var(--site-accent);
+  outline-offset: 2px;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--site-border);
+  background: var(--site-surface);
+}
+
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  min-height: var(--site-header-height);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 6px 16px;
+  box-sizing: border-box;
+}
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--site-fg);
+  font-size: 15px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.site-mark {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--site-radius);
+  color: var(--site-muted);
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  background: var(--site-sunken);
+  color: var(--site-fg);
+}
+
+/* The page you are on: a filled pill, not colour alone. */
+.site-nav a[aria-current="page"] {
+  background: var(--site-accent-soft);
+  color: var(--site-link);
+  font-weight: 650;
+}
+
+.site-link-arrow {
+  width: 10px;
+  height: 10px;
+}

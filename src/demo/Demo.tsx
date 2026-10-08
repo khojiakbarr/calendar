@@ -5,6 +5,7 @@ import { localStoragePreferences, noPreferenceStorage } from "../core/persistenc
 import type { EventSourceAction } from "../types"
 import { useCalendar } from "../useCalendar"
 import { createMockServer, demoResources, type ServerLogEntry } from "./mockServer"
+import { SiteHeader } from "./SiteHeader"
 import { readDemoUrlOptions } from "./urlOptions"
 
 /** Read once: the URL is the demo's only input that never changes while it runs. */
@@ -28,12 +29,12 @@ function formatClock(date: Date): string {
 }
 
 /**
- * Development playground and manual test bed.
+ * The live preview and manual test bed (`index.html`).
  *
  * Everything here proves the server-driven contract end to end: a slow or
  * failing `EventSource` still leaves the calendar consistent, because every
  * request and its outcome is visible in the log rail rather than only in
- * the network tab.
+ * the network tab. `?embed=1` strips it to the bare calendar, for screenshots.
  */
 export function Demo() {
   const isNarrow = useMediaQuery(NARROW_QUERY)
@@ -110,8 +111,14 @@ export function Demo() {
 
   return (
     <div className="cal-demo">
-      <header className="cal-demo-bar">
-        <strong className="cal-demo-title">@khojiakbarr/calendar</strong>
+      <SiteHeader page="preview" />
+      <div className="cal-demo-bar">
+        <div className="cal-demo-intro">
+          <h1 className="cal-demo-title">Live preview</h1>
+          <p className="cal-demo-sub">
+            An in-memory mock server answers every load and edit. Drag on empty space, move or resize an event, or open one.
+          </p>
+        </div>
         <div className="cal-demo-controls">
           <label className="cal-demo-field">
             Theme
@@ -151,7 +158,7 @@ export function Demo() {
             )
           )}
         </div>
-      </header>
+      </div>
 
       <div className="cal-demo-main">
         <div className="cal-demo-calendar">

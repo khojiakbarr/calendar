@@ -47,6 +47,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:demo": "vite build --config vite.demo.config.ts",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",

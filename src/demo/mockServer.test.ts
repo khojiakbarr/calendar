@@ -1,14 +1,30 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { createMockServer, demoResources, seedEvents } from "./mockServer"
 import { addDays, withMinutesOfDay } from "../core/date"
+import type { CalendarEvent } from "../types"
+
+/** Buckets `events` by `key`, in first-seen order (`Map.groupBy` is past this project's ES2023 lib). */
+function groupBy<K>(events: CalendarEvent[], key: (event: CalendarEvent) => K): Map<K, CalendarEvent[]> {
+  const groups = new Map<K, CalendarEvent[]>()
+  for (const event of events) {
+    const bucket = groups.get(key(event))
+    if (bucket) bucket.push(event)
+    else groups.set(key(event), [event])
+  }
+  return groups
+}
 
 describe("mockServer", () => {
   describe("demoResources", () => {
-    it("exports three resources with id, name, and color", () => {
-      expect(demoResources).toHaveLength(3)
-      expect(demoResources[0]).toEqual({ id: "team", name: "Bryntum team", color: "#3b82f6" })
-      expect(demoResources[1]).toEqual({ id: "hotel", name: "Hotel Park", color: "#f59e0b" })
-      expect(demoResources[2]).toEqual({ id: "michael", name: "Michael Johnson", color: "#ef4444" })
+    it("exports six resources with id, name, color and group", () => {
+      expect(demoResources).toHaveLength(6)
+      expect(demoResources[0]).toEqual({ id: "team", name: "Bryntum team", color: "#3b82f6", group: "Trip" })
+      expect(demoResources[1]).toEqual({ id: "hotel", name: "Hotel Park", color: "#f59e0b", group: "Trip" })
+      expect(demoResources[2]).toEqual({ id: "michael", name: "Michael Johnson", color: "#ef4444", group: "Trip" })
+    })
+
+    it("files the resources under two groups, so the sidebar draws two headings", () => {
+      expect(new Set(demoResources.map((resource) => resource.group))).toEqual(new Set(["Trip", "Project Atlas"]))
     })
   })
 
@@ -232,6 +248,42 @@ describe("mockServer", () => {
         expect(ev.allDay).toBe(true)
         expect(ev.resourceId).toBe("team")
       })
+    })
+
+    it("seeds Gantt-like records whose dates share a groupId", () => {
+      const events = seedEvents(new Date("2022-03-15"))
+      const records = groupBy(
+        events.filter((ev) => ev.groupId !== undefined),
+        (ev) => ev.groupId,
+      )
+
+      expect([...records.keys()].sort()).toEqual(["atlas-fitout", "atlas-foundations", "atlas-inspection", "atlas-procurement"])
+      for (const dates of records.values()) {
+        expect(dates.some((ev) => ev.appearance === "plan")).toBe(true)
+        expect(dates.some((ev) => ev.appearance === "actual")).toBe(true)
+        expect(dates.some((ev) => ev.marker === "tick")).toBe(true)
+      }
+      // One record ran late and one is not paid yet, so the sample shows the overrun and its absence.
+      expect(records.get("atlas-procurement")?.some((ev) => ev.appearance === "overrun")).toBe(true)
+      expect(records.get("atlas-fitout")?.some((ev) => ev.marker === "dot")).toBe(false)
+    })
+
+    it("keeps an overrun starting where its plan ends", () => {
+      const procurement = seedEvents(new Date("2022-03-15")).filter((ev) => ev.groupId === "atlas-procurement")
+      const plan = procurement.find((ev) => ev.appearance === "plan")
+      const overrun = procurement.find((ev) => ev.appearance === "overrun")
+
+      expect(overrun?.start.getTime()).toBe(plan?.end.getTime())
+    })
+
+    it("puts six meetings in one hour of one day, more than a week's column shows", () => {
+      const events = seedEvents(new Date("2022-03-15"))
+      const crowded = groupBy(
+        events.filter((ev) => !ev.allDay),
+        (ev) => ev.start.getTime(),
+      )
+
+      expect(Math.max(...[...crowded.values()].map((same) => same.length))).toBeGreaterThanOrEqual(6)
     })
 
     it("includes Weekly sync in other weeks", () => {
