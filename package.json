@@ -1,6 +1,6 @@
 {
   "name": "@hojiakbar_dev/calendar",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Server-driven React calendar: day, week, month, year and agenda views; drag to create, move and resize; range-based loading with optimistic edits.",
   "keywords": [
     "agenda",

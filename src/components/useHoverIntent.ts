@@ -11,8 +11,12 @@ export interface HoverTarget<T> {
 export interface HoverIntent<T> {
   /** The hovered target once the delay has elapsed without a {@link hide}; else `null`. */
   target: HoverTarget<T> | null
-  /** Call on pointer enter; `target` appears after the configured delay. */
-  show(target: HoverTarget<T>): void
+  /**
+   * Call on pointer enter; `target` appears after the configured delay. Pass a
+   * function to read the target when it appears rather than now — a chip
+   * that grows under the pointer is measured at its grown size.
+   */
+  show(target: HoverTarget<T> | (() => HoverTarget<T>)): void
   /** Call on pointer leave; cancels a pending show and clears the current target immediately. */
   hide(): void
 }
@@ -38,11 +42,11 @@ export function useHoverIntent<T>(delayMs = 400): HoverIntent<T> {
   }, [])
 
   const show = useCallback(
-    (next: HoverTarget<T>) => {
+    (next: HoverTarget<T> | (() => HoverTarget<T>)) => {
       clearPendingTimer()
       timerRef.current = setTimeout(() => {
         timerRef.current = null
-        setTarget(next)
+        setTarget(typeof next === "function" ? next() : next)
       }, delayMs)
     },
     [clearPendingTimer, delayMs],

@@ -142,7 +142,9 @@ export function Calendar<TData = unknown>({
   const handleEventHover = useCallback(
     (event: CalendarEvent<TData> | null, el: HTMLElement | null) => {
       setLitGroup(event?.groupId ?? null)
-      if (event && el) hover.show({ event, anchor: rectOf(el) })
+      // Measured when the tooltip appears, not now: by then the chip has grown to its lifted size, and a
+      // tooltip placed beside the smaller one would cover the part it grew into.
+      if (event && el) hover.show(() => ({ event, anchor: rectOf(el) }))
       else hover.hide()
     },
     [hover],

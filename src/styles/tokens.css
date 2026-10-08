@@ -42,7 +42,7 @@
     --cal-day-number-box: 36px;
     --cal-day-number-offset: 4px;
     /* An event under the pointer: lifted off the grid. */
-    --cal-hover-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+    --cal-hover-shadow: 0 12px 28px rgb(0 0 0 / 0.26), 0 3px 8px rgb(0 0 0 / 0.16);
 
     --cal-accent: #3b82f6;
     --cal-accent-soft: #dbeafe;
@@ -116,6 +116,8 @@
       --cal-chip-mix-hover: 40%;
 
       --cal-root-shadow: none;
+      /* A dark ground swallows a light shadow; the lifted chip needs a deeper one to stand off it. */
+      --cal-hover-shadow: 0 14px 32px rgb(0 0 0 / 0.6), 0 3px 10px rgb(0 0 0 / 0.45);
     }
   }
 
@@ -150,6 +152,7 @@
     --cal-chip-mix-hover: 40%;
 
     --cal-root-shadow: none;
+    --cal-hover-shadow: 0 14px 32px rgb(0 0 0 / 0.6), 0 3px 10px rgb(0 0 0 / 0.45);
   }
 
   /* Main container (body) */

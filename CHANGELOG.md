@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.5 — 2026-10-08
+
+- An event's tooltip no longer covers the event. It is measured at its own width wherever it stands
+  (`width: max-content`) — laid out first at the viewport's right edge it was measured squeezed, placed to
+  the left by that width, then widened over its chip — and it is placed beside the chip as it is when the
+  tooltip appears, grown to its lifted size, not as it was when the pointer arrived. `useHoverIntent`'s
+  `show` also takes a function, read when the delay is over.
+- A lifted event's shadow is deeper (`--cal-hover-shadow`), and deeper again in dark mode, where the light
+  one barely showed.
+
 ## 0.2.4 — 2026-10-08
 
 - The sidebar's checkboxes are the calendar's own, not the browser's: its ground and edge in dark mode

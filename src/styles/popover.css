@@ -18,7 +18,13 @@
     position: fixed;
     z-index: 1000;
     pointer-events: none;
-    max-width: 260px;
+    /*
+     * Its own width wherever it stands. A fixed box takes the width left to the
+     * viewport's edge, so a tooltip first laid out at the right edge was measured
+     * squeezed, placed to the left by that width, then widened over its event.
+     */
+    width: max-content;
+    max-width: min(260px, calc(100vw - 16px));
     padding: 10px 12px;
     background-color: var(--cal-bg);
     color: var(--cal-fg);

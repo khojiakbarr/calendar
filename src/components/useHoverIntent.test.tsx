@@ -39,6 +39,20 @@ describe("useHoverIntent", () => {
     expect(result.current.target).toEqual(target)
   })
 
+  it("reads a target given as a function when it appears, not when the pointer arrives", () => {
+    const { result } = renderHook(() => useHoverIntent<TestEvent>(400))
+    let width = 10
+    act(() => {
+      result.current.show(() => ({ event: { id: "e1" }, anchor: { ...anchor, width } }))
+    })
+    // The chip grows under the pointer before the tooltip shows.
+    width = 120
+    act(() => {
+      vi.advanceTimersByTime(400)
+    })
+    expect(result.current.target?.anchor.width).toBe(120)
+  })
+
   it("cancels the pending show when hide is called before the delay elapses", () => {
     const { result } = renderHook(() => useHoverIntent<TestEvent>(400))
 
