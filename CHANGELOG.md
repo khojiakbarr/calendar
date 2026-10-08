@@ -12,3 +12,4 @@ First release on npm, as `@hojiakbar_dev/calendar` (0.1.0 was never published).
 - `onEventClick` on `<Calendar>` — the host opens its own record; the editor stays shut.
 - Grouped resources: `group` on a resource, a checkbox per group, `instance.setResourcesHidden`.
 - Month and agenda chips carry `data-event-id`, as the time grid's always did.
+- A double-click on a month or agenda chip opens it once, as the time grid's always did (it opened it two or three times).
