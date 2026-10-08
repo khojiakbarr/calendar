@@ -70,7 +70,11 @@
     opacity: 0.6;
   }
 
+  /* Today is a circle: as wide as it is tall and centred in its cell, however wide the month's columns are. */
   .cal-year-today {
+    justify-self: center;
+    width: 28px;
+    aspect-ratio: 1;
     background-color: var(--cal-accent);
     color: var(--cal-on-accent);
     border-radius: 50%;

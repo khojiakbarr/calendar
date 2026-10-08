@@ -24,13 +24,18 @@
     border-right: 1px solid var(--cal-border);
   }
 
+  /*
+   * A day's head: its weekday over its number by default. A host that wants a
+   * shorter head sets `--cal-day-header-direction: row` (the two side by side)
+   * and a smaller `--cal-day-number-size` / `--cal-day-number-box`.
+   */
   .cal-day-header {
     display: flex;
-    flex-direction: column;
+    flex-direction: var(--cal-day-header-direction);
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    padding: 6px 4px 8px;
+    gap: var(--cal-day-header-gap);
+    padding: var(--cal-day-header-padding);
     border-left: 1px solid var(--cal-border);
   }
 
@@ -49,16 +54,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    margin-top: 4px;
+    width: var(--cal-day-number-box);
+    height: var(--cal-day-number-box);
+    margin-top: var(--cal-day-number-offset);
     padding: 0;
     border: none;
     border-radius: 999px;
     background-color: transparent;
     color: var(--cal-header-fg);
     font: inherit;
-    font-size: calc(24px * var(--cal-date-scale));
+    font-size: calc(var(--cal-day-number-size) * var(--cal-date-scale));
     font-weight: 500;
     line-height: 1;
     cursor: pointer;
@@ -349,7 +354,7 @@
     }
 
     .cal-day-header-number {
-      font-size: calc(18px * var(--cal-date-scale));
+      font-size: calc(var(--cal-day-number-size) * 0.75 * var(--cal-date-scale));
     }
 
     .cal-event-timed {

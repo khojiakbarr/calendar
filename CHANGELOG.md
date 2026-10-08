@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 — 2026-10-08
+
+- Today in the year view is a circle again — 28px, centred — instead of an oval as wide as its column.
+- A day's head on the time grid is set by tokens: `--cal-day-header-direction` (`column`, or `row` to put the
+  weekday beside its number), `--cal-day-header-gap`, `--cal-day-header-padding`, `--cal-day-number-size`,
+  `--cal-day-number-box` and `--cal-day-number-offset` — a host that wants a shorter head no longer
+  overrides selectors.
+
 ## 0.2.1 — 2026-10-08
 
 - A crowded hour stays readable: a cluster of overlapping timed events takes at most `maxEventColumns`

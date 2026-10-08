@@ -33,6 +33,13 @@
     --cal-font-size: 14px;
     /* How large the date numerals are drawn — the day numbers, the agenda's, the mini-calendar's, the year's. */
     --cal-date-scale: 1;
+    /* A day's head on the time grid (day and week). */
+    --cal-day-header-direction: column;
+    --cal-day-header-gap: 2px;
+    --cal-day-header-padding: 6px 4px 8px;
+    --cal-day-number-size: 24px;
+    --cal-day-number-box: 36px;
+    --cal-day-number-offset: 4px;
     /* An event under the pointer: lifted off the grid. */
     --cal-hover-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
 
