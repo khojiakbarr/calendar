@@ -11,6 +11,19 @@ export interface DateRange {
 export type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 /**
+ * How an event is drawn, in a Gantt chart's words: `plan` a dashed outline of
+ * what was planned, `actual` what happened (the ordinary filled chip),
+ * `overrun` the stretch past the plan, striped red.
+ */
+export type EventAppearance = "plan" | "actual" | "overrun"
+
+/** A one-day mark rather than a stretch of time: `tick` for a limit (a due day), `dot` for a moment (a payment). */
+export type EventMarker = "tick" | "dot"
+
+/** What an event's colour means; each is a `--cal-*` token, so a host restyles all of them in one place. */
+export type EventTone = "primary" | "success" | "danger" | "neutral"
+
+/**
  * One event as the calendar sees it.
  *
  * `end` is exclusive: an event from 09:00 to 10:00 ends the instant 10:00
@@ -34,6 +47,19 @@ export interface CalendarEvent<TData = unknown> {
   color?: string
   /** Cannot be dragged, resized, edited or deleted. */
   readOnly?: boolean
+  /** Drawn as a plan, the actual work, or the overrun past a plan. Default: an ordinary chip. */
+  appearance?: EventAppearance | undefined
+  /** Drawn as a one-day mark. Give the event a whole day: `allDay` with `end` the next midnight. */
+  marker?: EventMarker | undefined
+  /** The colour's meaning. Wins over the resource's colour, loses to `color`. */
+  tone?: EventTone | undefined
+  /** Extra classes on the chip, for a look the host defines in its own stylesheet. */
+  className?: string | undefined
+  /**
+   * Events that are dates of one record share it — a step's plan, its actual
+   * work and its deadline. Pointing at one lights up the others.
+   */
+  groupId?: string | undefined
   data?: TData
 }
 

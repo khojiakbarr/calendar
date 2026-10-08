@@ -84,6 +84,6 @@ export interface CalendarInstance<TData = unknown> {
   /** @returns False when the source rejected (the event is restored). */
   removeEvent(id: string): Promise<boolean>
   resourceOf(event: CalendarEvent<TData>): CalendarResource | undefined
-  /** The event's own colour, else its resource's, else the accent. */
+  /** The event's own colour, else its tone's, else its resource's, else the accent. */
   colorOf(event: CalendarEvent<TData>): string
 }

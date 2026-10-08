@@ -3,6 +3,7 @@ import { classNames } from "../../core/classNames"
 import { isoWeek, overlaps } from "../../core/date"
 import { formatDateInput, formatDayMonth, formatTime } from "../../core/format"
 import { fill } from "../../core/labels"
+import { eventLookClasses } from "../../core/looks"
 import { layoutSegments, limitRows, type Segment } from "../../core/spans"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
@@ -72,10 +73,13 @@ function EventChip<TData>({
         continuesBefore && "cal-continues-before",
         continuesAfter && "cal-continues-after",
         instance.pendingIds.has(event.id) && "cal-event-pending",
+        eventLookClasses(event),
         eventSlotClass,
       )}
       style={{ gridColumn: `${startCol + 1} / ${endCol + 2}`, gridRow: row + 1, "--cal-event-color": instance.colorOf(event) } as CSSProperties}
       role="button"
+      data-event-id={event.id}
+      data-group={event.groupId}
       tabIndex={0}
       aria-label={describeEvent(segment, labels, locale)}
       onClick={openFromPointer}

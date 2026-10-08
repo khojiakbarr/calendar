@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react"
+import { TONE_COLOR, toneOf } from "./core/looks"
 import { emptyStore, eventsInRange, type EventStoreState } from "./core/eventStore"
 import { useCalendarView } from "./core/useCalendarView"
 import { useEventLoading } from "./core/useEventLoading"
@@ -204,7 +205,10 @@ export function useCalendar<TData = unknown>({
   }, [])
 
   const colorOf = useCallback(
-    (event: CalendarEvent<TData>): string => event.color ?? resourceOf(event)?.color ?? DEFAULT_EVENT_COLOR,
+    (event: CalendarEvent<TData>): string => {
+      const tone = toneOf(event)
+      return event.color ?? (tone === undefined ? undefined : TONE_COLOR[tone]) ?? resourceOf(event)?.color ?? DEFAULT_EVENT_COLOR
+    },
     [resourceOf],
   )
 

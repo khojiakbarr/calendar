@@ -1,6 +1,7 @@
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from "react"
 import { classNames } from "../../core/classNames"
 import { addDays, spansWholeDays } from "../../core/date"
+import { eventLookClasses } from "../../core/looks"
 import { formatDayMonth, formatTime } from "../../core/format"
 import { fill } from "../../core/labels"
 import type { TimedBlock } from "../../core/layout"
@@ -184,9 +185,11 @@ export function TimedEvent<T>({ block, instance, labels, dayStartMinutes, onOpen
         block.endMinutes - block.startMinutes < SHORT_EVENT_MINUTES && "cal-event-short",
         isPending && "cal-event-pending",
         isReadOnly && "cal-event-readonly",
+        eventLookClasses(event),
         eventSlotClass,
       )}
       style={style}
+      data-group={event.groupId}
       {...eventChipProps({ event, labels, locale: instance.settings.locale, onOpen, onHover, wasDragged })}
     >
       <span className="cal-event-time">{formatTime(event.start, instance.settings.locale)}</span>

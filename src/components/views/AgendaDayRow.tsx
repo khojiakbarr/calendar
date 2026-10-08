@@ -5,6 +5,7 @@ import { isSameDay } from "../../core/date"
 import { formatMonth, formatTime, formatTimeRange, formatWeekday } from "../../core/format"
 import { fill } from "../../core/labels"
 import { classNames } from "../../core/classNames"
+import { eventLookClasses } from "../../core/looks"
 import { useSlotClass } from "../classesContext"
 import type { AgendaDayGroup } from "./agendaFormat"
 import { spanLabel } from "./agendaFormat"
@@ -64,8 +65,10 @@ function AgendaEventRow<TData>({ event, instance, labels, onEventOpen, kind }: A
   return (
     <button
       type="button"
-      className={classNames("cal-agenda-row", kind === "span" ? "cal-agenda-span" : "cal-agenda-timed", eventSlotClass)}
+      className={classNames("cal-agenda-row", kind === "span" ? "cal-agenda-span" : "cal-agenda-timed", eventLookClasses(event), eventSlotClass)}
       style={eventColorStyle(instance.colorOf(event))}
+      data-event-id={event.id}
+      data-group={event.groupId}
       aria-label={description}
       onClick={(clickEvent) => onEventOpen(event, clickEvent.currentTarget)}
     >

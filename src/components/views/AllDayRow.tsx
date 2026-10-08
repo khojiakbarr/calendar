@@ -1,5 +1,6 @@
 import { classNames } from "../../core/classNames"
 import { fill } from "../../core/labels"
+import { eventLookClasses } from "../../core/looks"
 import { layoutSegments, limitRows, type Segment } from "../../core/spans"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
@@ -80,9 +81,11 @@ export function AllDayRow<T>({ instance, labels, gridTemplateColumns, onEventOpe
               segment.continuesAfter && "cal-event-continues-after",
               instance.pendingIds.has(segment.event.id) && "cal-event-pending",
               segment.event.readOnly === true && "cal-event-readonly",
+              eventLookClasses(segment.event),
               eventSlotClass,
             )}
             style={pillStyle(segment, instance.colorOf(segment.event))}
+            data-group={segment.event.groupId}
             {...eventChipProps({
               event: segment.event,
               labels,

@@ -35,6 +35,8 @@
     --cal-accent: #3b82f6;
     --cal-accent-soft: #dbeafe;
     --cal-danger: #dc2626;
+    --cal-success: #16a34a;
+    --cal-neutral: var(--cal-muted-fg);
     /* Text/icon colour drawn on top of a solid --cal-accent fill (today circles, filled heat cells). */
     --cal-on-accent: #ffffff;
 
@@ -82,6 +84,8 @@
       --cal-accent: #3b82f6;
       --cal-accent-soft: #1e3a5f;
       --cal-danger: #dc2626;
+      --cal-success: #22c55e;
+      --cal-neutral: var(--cal-muted-fg);
 
       --cal-header-bg: #15171c;
       --cal-header-fg: #e6e8ec;
@@ -114,6 +118,8 @@
     --cal-accent: #3b82f6;
     --cal-accent-soft: #1e3a5f;
     --cal-danger: #dc2626;
+    --cal-success: #22c55e;
+    --cal-neutral: var(--cal-muted-fg);
 
     --cal-header-bg: #15171c;
     --cal-header-fg: #e6e8ec;

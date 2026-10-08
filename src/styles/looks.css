@@ -1,0 +1,61 @@
+@layer calendar {
+  /*
+   * Event looks, in a Gantt chart's words (see `EventAppearance`), the same on
+   * the time grid, the all-day strip, the month and the agenda. Imported after
+   * the views, so inside the one layer these win over their chip rules.
+   */
+
+  /* plan — a dashed outline of what was planned; no fill, as nothing has happened in it yet. */
+  .cal-look-plan:is(.cal-event-timed, .cal-allday-pill, .cal-month-event-span, .cal-agenda-span) {
+    background: transparent;
+    border: 1.5px dashed var(--cal-event-color);
+    color: var(--cal-fg);
+  }
+
+  .cal-look-plan:is(.cal-event-timed, .cal-allday-pill, .cal-month-event-span):hover {
+    background: color-mix(in srgb, var(--cal-event-color) 10%, var(--cal-bg));
+  }
+
+  /* overrun — the days past the plan, striped over the tone's tint. */
+  .cal-look-overrun:is(.cal-event-timed, .cal-allday-pill, .cal-month-event-span, .cal-agenda-span) {
+    background-image: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--cal-event-color) 45%, transparent) 0 4px,
+      transparent 4px 8px
+    );
+  }
+
+  /* A one-day mark: a bar for a limit, a dot for a moment, before the name. */
+  .cal-marker::before {
+    content: "";
+    display: inline-block;
+    flex: none;
+    vertical-align: middle;
+    margin-inline-end: 4px;
+    background: var(--cal-event-color);
+  }
+
+  .cal-marker-tick::before {
+    width: 3px;
+    height: 0.9em;
+    border-radius: 1px;
+  }
+
+  .cal-marker-dot::before {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  /* The other dates of the record under the pointer. */
+  .cal-event-lit {
+    outline: 2px solid var(--cal-event-color);
+    outline-offset: 1px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cal-event-lit {
+      transition: outline-color 150ms ease-out;
+    }
+  }
+}
