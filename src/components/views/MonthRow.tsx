@@ -8,6 +8,7 @@ import { layoutSegments, limitRows, type Segment } from "../../core/spans"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
 import { useSlotClass } from "../classesContext"
+import { useIsLit } from "../litGroupContext"
 import { MonthCell, type CellAnchorRect } from "./MonthCell"
 import type { UseMonthDragResult } from "./useMonthDrag"
 
@@ -53,6 +54,7 @@ function EventChip<TData>({
   const { locale } = instance.settings
   const dragHandlers = drag.getChipHandlers(event)
   const eventSlotClass = useSlotClass("event")
+  const isLit = useIsLit(event.groupId)
 
   const openFromPointer = (mouseEvent: MouseEvent<HTMLDivElement>): void => {
     if (drag.wasDragged()) return
@@ -74,6 +76,7 @@ function EventChip<TData>({
         continuesAfter && "cal-continues-after",
         instance.pendingIds.has(event.id) && "cal-event-pending",
         eventLookClasses(event),
+        isLit && "cal-event-lit",
         eventSlotClass,
       )}
       style={{ gridColumn: `${startCol + 1} / ${endCol + 2}`, gridRow: row + 1, "--cal-event-color": instance.colorOf(event) } as CSSProperties}

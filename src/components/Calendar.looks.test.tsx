@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import type { CalendarEvent, EventSource } from "../types"
 import { useCalendar } from "../useCalendar"
@@ -40,5 +40,18 @@ describe("event looks on the month grid", () => {
     expect(chip(container, "paid").className).toContain("x-paid")
     expect(chip(container, "paid").style.getPropertyValue("--cal-event-color")).toBe("var(--cal-success)")
     expect(chip(container, "due").dataset.group).toBe("step-1")
+  })
+})
+
+describe("a record's dates together", () => {
+  it("lights the record's other dates while one is pointed at", async () => {
+    const { container } = render(<Month />)
+    await screen.findByText("Оплата")
+    fireEvent.mouseEnter(chip(container, "plan"))
+    expect(chip(container, "due").className).toContain("cal-event-lit")
+    expect(chip(container, "over").className).toContain("cal-event-lit")
+    expect(chip(container, "paid").className).not.toContain("cal-event-lit")
+    fireEvent.mouseLeave(chip(container, "plan"))
+    expect(chip(container, "due").className).not.toContain("cal-event-lit")
   })
 })

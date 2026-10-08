@@ -7,6 +7,7 @@ import type { CalendarEvent, CalendarLabels, CalendarView, EventDraft } from "..
 import type { DialogPresentation } from "./Dialog"
 import { EventEditor } from "./EventEditor"
 import { EventTooltip } from "./EventTooltip"
+import { LitGroupContext } from "./litGroupContext"
 import { defaultLabels } from "./labels"
 import type { AnchorRect } from "./Popover"
 import { Sidebar } from "./Sidebar"
@@ -96,6 +97,8 @@ export function Calendar<TData = unknown>({
   const isNarrow = useMediaQuery(NARROW_SCREEN_QUERY)
   const [sidebarOpen, setSidebarOpen] = useState(() => !isNarrow)
   useEffect(() => setSidebarOpen(!isNarrow), [isNarrow])
+  // The record under the pointer: its other dates are drawn lit (`groupId`).
+  const [litGroup, setLitGroup] = useState<string | null>(null)
   const handleCloseSidebar = useCallback(() => setSidebarOpen(false), [])
   const editorState = useEditorState(instance)
   const hover = useHoverIntent<CalendarEvent<TData>>(HOVER_DELAY_MS)
@@ -129,6 +132,7 @@ export function Calendar<TData = unknown>({
 
   const handleEventHover = useCallback(
     (event: CalendarEvent<TData> | null, el: HTMLElement | null) => {
+      setLitGroup(event?.groupId ?? null)
       if (event && el) hover.show({ event, anchor: rectOf(el) })
       else hover.hide()
     },
@@ -152,6 +156,7 @@ export function Calendar<TData = unknown>({
   return (
     <CalendarThemeContext.Provider value={theme}>
     <CalendarClassesContext.Provider value={classes}>
+    <LitGroupContext.Provider value={litGroup}>
     <div className={classNames("cal-root", rootSlotClass, className)} data-theme={theme} style={rootStyle} onKeyDown={handleKeyDown}>
       <Toolbar
         instance={instance}
@@ -207,6 +212,7 @@ export function Calendar<TData = unknown>({
         />
       ) : null}
     </div>
+    </LitGroupContext.Provider>
     </CalendarClassesContext.Provider>
     </CalendarThemeContext.Provider>
   )

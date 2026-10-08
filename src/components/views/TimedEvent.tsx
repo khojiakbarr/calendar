@@ -8,6 +8,7 @@ import type { TimedBlock } from "../../core/layout"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
 import { useSlotClass } from "../classesContext"
+import { useIsLit } from "../litGroupContext"
 
 /** Below this length a chip has room for one line only, so time and name share it. */
 const SHORT_EVENT_MINUTES = 45
@@ -166,6 +167,7 @@ export function TimedEvent<T>({ block, instance, labels, dayStartMinutes, onOpen
   const isPending = instance.pendingIds.has(event.id)
   const canResize = instance.flags.resize && !isReadOnly
   const eventSlotClass = useSlotClass("event")
+  const isLit = useIsLit(event.groupId)
   const style: EventStyle = {
     ...blockStyle({
       startMinutes: block.startMinutes,
@@ -186,6 +188,7 @@ export function TimedEvent<T>({ block, instance, labels, dayStartMinutes, onOpen
         isPending && "cal-event-pending",
         isReadOnly && "cal-event-readonly",
         eventLookClasses(event),
+        isLit && "cal-event-lit",
         eventSlotClass,
       )}
       style={style}

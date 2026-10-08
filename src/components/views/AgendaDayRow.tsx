@@ -7,6 +7,7 @@ import { fill } from "../../core/labels"
 import { classNames } from "../../core/classNames"
 import { eventLookClasses } from "../../core/looks"
 import { useSlotClass } from "../classesContext"
+import { useIsLit } from "../litGroupContext"
 import type { AgendaDayGroup } from "./agendaFormat"
 import { spanLabel } from "./agendaFormat"
 
@@ -61,11 +62,12 @@ function AgendaEventRow<TData>({ event, instance, labels, onEventOpen, kind }: A
     end: formatTime(event.end, locale),
   })
   const eventSlotClass = useSlotClass("event")
+  const isLit = useIsLit(event.groupId)
 
   return (
     <button
       type="button"
-      className={classNames("cal-agenda-row", kind === "span" ? "cal-agenda-span" : "cal-agenda-timed", eventLookClasses(event), eventSlotClass)}
+      className={classNames("cal-agenda-row", kind === "span" ? "cal-agenda-span" : "cal-agenda-timed", eventLookClasses(event), isLit && "cal-event-lit", eventSlotClass)}
       style={eventColorStyle(instance.colorOf(event))}
       data-event-id={event.id}
       data-group={event.groupId}

@@ -5,6 +5,7 @@ import { layoutSegments, limitRows, type Segment } from "../../core/spans"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
 import { useSlotClass } from "../classesContext"
+import { useIsLit } from "../litGroupContext"
 import { eventChipProps, type EventStyle } from "./TimedEvent"
 
 /** How many bars stack before the rest collapse into "+N more". */
@@ -72,30 +73,15 @@ export function AllDayRow<T>({ instance, labels, gridTemplateColumns, onEventOpe
         }}
       >
         {visible.map((segment) => (
-          <div
+          <AllDayPill
             key={segment.event.id}
-            className={classNames(
-              "cal-event",
-              "cal-allday-pill",
-              segment.continuesBefore && "cal-event-continues-before",
-              segment.continuesAfter && "cal-event-continues-after",
-              instance.pendingIds.has(segment.event.id) && "cal-event-pending",
-              segment.event.readOnly === true && "cal-event-readonly",
-              eventLookClasses(segment.event),
-              eventSlotClass,
-            )}
-            style={pillStyle(segment, instance.colorOf(segment.event))}
-            data-group={segment.event.groupId}
-            {...eventChipProps({
-              event: segment.event,
-              labels,
-              locale: instance.settings.locale,
-              onOpen: onEventOpen,
-              onHover: onEventHover,
-            })}
-          >
-            {segment.event.name || labels.untitled}
-          </div>
+            segment={segment}
+            instance={instance}
+            labels={labels}
+            onEventOpen={onEventOpen}
+            onEventHover={onEventHover}
+            eventSlotClass={eventSlotClass}
+          />
         ))}
         {overflow.map((count, column) => {
           const day = days[column]
@@ -113,6 +99,47 @@ export function AllDayRow<T>({ instance, labels, gridTemplateColumns, onEventOpe
           )
         })}
       </div>
+    </div>
+  )
+}
+
+/** What one {@link AllDayPill} needs: its segment and the row's shared props. */
+interface AllDayPillProps<T> {
+  segment: Segment<T>
+  instance: CalendarInstance<T>
+  labels: CalendarLabels
+  onEventOpen(event: CalendarEvent<T>, anchor: HTMLElement): void
+  onEventHover(event: CalendarEvent<T> | null, anchor: HTMLElement | null): void
+  eventSlotClass: string | undefined
+}
+
+/** One all-day pill — its own component so it can read whether its record is lit. */
+function AllDayPill<T>({ segment, instance, labels, onEventOpen, onEventHover, eventSlotClass }: AllDayPillProps<T>) {
+  const isLit = useIsLit(segment.event.groupId)
+  return (
+    <div
+      className={classNames(
+        "cal-event",
+        "cal-allday-pill",
+        segment.continuesBefore && "cal-event-continues-before",
+        segment.continuesAfter && "cal-event-continues-after",
+        instance.pendingIds.has(segment.event.id) && "cal-event-pending",
+        segment.event.readOnly === true && "cal-event-readonly",
+        eventLookClasses(segment.event),
+        isLit && "cal-event-lit",
+        eventSlotClass,
+      )}
+      style={pillStyle(segment, instance.colorOf(segment.event))}
+      data-group={segment.event.groupId}
+      {...eventChipProps({
+        event: segment.event,
+        labels,
+        locale: instance.settings.locale,
+        onOpen: onEventOpen,
+        onHover: onEventHover,
+      })}
+    >
+      {segment.event.name || labels.untitled}
     </div>
   )
 }
