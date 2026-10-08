@@ -4,6 +4,9 @@ import type { CalendarLabels, CalendarResource } from "../types"
 import { classNames } from "../core/classNames"
 import { groupResources } from "../core/resourceGroups"
 import { useSlotClass } from "./classesContext"
+import { fill } from "../core/labels"
+import { ChevronIcon } from "./icons"
+import { useResourceGroupsFolding } from "./resourceGroupsContext"
 
 export interface ResourceFilterProps<TData = unknown> {
   instance: CalendarInstance<TData>
@@ -30,7 +33,7 @@ export function ResourceFilter<TData = unknown>({ instance, labels }: ResourceFi
         group === null ? (
           resources.map((resource) => <ResourceRow key={resource.id} resource={resource} instance={instance} />)
         ) : (
-          <GroupSection key={group} group={group} resources={resources} instance={instance} />
+          <GroupSection key={group} group={group} resources={resources} instance={instance} labels={labels} />
         ),
       )}
     </div>
@@ -38,26 +41,53 @@ export function ResourceFilter<TData = unknown>({ instance, labels }: ResourceFi
 }
 
 /**
- * One group: its own checkbox, then its members. The section is named by the
- * group's label rather than by a second copy of the text, so a screen reader
- * hears the name once.
+ * One group, folded like an accordion: its checkbox, then its name and a
+ * chevron as one button that opens and folds it, then its members. The
+ * checkbox shows or hides the whole group; the name only folds it, so a
+ * click meant to open «Закупки» never hides every purchase. The section and
+ * the checkbox are named by the group's name, heard once. A folded group's
+ * members are `inert` — out of the tab order and the reading order.
  */
 function GroupSection<TData>({
   group,
   resources,
   instance,
+  labels,
 }: {
   group: string
   resources: CalendarResource[]
   instance: CalendarInstance<TData>
+  labels: CalendarLabels
 }) {
   const nameId = useId()
+  const membersId = useId()
+  const folding = useResourceGroupsFolding()
+  const isCollapsed = folding.isCollapsed(group)
   return (
-    <div className="cal-resource-group" role="group" aria-labelledby={nameId}>
-      <GroupRow group={group} nameId={nameId} resources={resources} instance={instance} />
-      {resources.map((resource) => (
-        <ResourceRow key={resource.id} resource={resource} instance={instance} />
-      ))}
+    <div className={classNames("cal-resource-group", isCollapsed && "cal-resource-group-collapsed")} role="group" aria-labelledby={nameId}>
+      <div className="cal-resource-row cal-resource-group-row">
+        <GroupCheckbox nameId={nameId} resources={resources} instance={instance} />
+        <button
+          type="button"
+          className="cal-resource-group-toggle"
+          aria-expanded={!isCollapsed}
+          aria-controls={membersId}
+          aria-label={fill(isCollapsed ? labels.expandGroup : labels.collapseGroup, { name: group })}
+          onClick={() => folding.toggle(group)}
+        >
+          <span id={nameId} className="cal-resource-name">
+            {group}
+          </span>
+          <ChevronIcon direction="right" />
+        </button>
+      </div>
+      <div id={membersId} className="cal-resource-group-members" inert={isCollapsed}>
+        <div className="cal-resource-group-members-inner">
+          {resources.map((resource) => (
+            <ResourceRow key={resource.id} resource={resource} instance={instance} />
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
@@ -82,36 +112,22 @@ function ResourceRow<TData>({ resource, instance }: { resource: CalendarResource
  * A group's own checkbox: ticked while every member shows, mixed while some
  * do. A click shows the whole group, or hides it when all of it already shows.
  */
-function GroupRow<TData>({
-  group,
-  nameId,
-  resources,
-  instance,
-}: {
-  group: string
-  nameId: string
-  resources: CalendarResource[]
-  instance: CalendarInstance<TData>
-}) {
+function GroupCheckbox<TData>({ nameId, resources, instance }: { nameId: string; resources: CalendarResource[]; instance: CalendarInstance<TData> }) {
   const shown = resources.filter((resource) => !instance.hiddenResourceIds.includes(resource.id)).length
   const isAllShown = shown === resources.length
   const ids = resources.map((resource) => resource.id)
   return (
-    <label className="cal-resource-row cal-resource-group-row">
-      <input
-        type="checkbox"
-        className="cal-checkbox"
-        checked={isAllShown}
-        ref={(input) => {
-          // `indeterminate` exists only as a DOM property, never as an attribute React could set.
-          if (input) input.indeterminate = shown > 0 && !isAllShown
-        }}
-        onChange={() => instance.setResourcesHidden(ids, isAllShown)}
-      />
-      <span id={nameId} className="cal-resource-name">
-        {group}
-      </span>
-    </label>
+    <input
+      type="checkbox"
+      className="cal-checkbox"
+      aria-labelledby={nameId}
+      checked={isAllShown}
+      ref={(input) => {
+        // `indeterminate` exists only as a DOM property, never as an attribute React could set.
+        if (input) input.indeterminate = shown > 0 && !isAllShown
+      }}
+      onChange={() => instance.setResourcesHidden(ids, isAllShown)}
+    />
   )
 }
 

@@ -45,4 +45,20 @@ describe("grouped resources", () => {
     expect(group.indeterminate).toBe(true)
     expect(group).not.toBeChecked()
   })
+
+  it("folds a group from its name — out of the reading and tab order — and leaves what it shows alone", () => {
+    render(<Filter />)
+    const fold = screen.getByRole("button", { name: "Collapse Документы" })
+    expect(fold).toHaveAttribute("aria-expanded", "true")
+
+    fireEvent.click(fold)
+
+    expect(screen.getByRole("button", { name: "Expand Документы" })).toHaveAttribute("aria-expanded", "false")
+    // jsdom keeps an inert subtree in its accessibility tree; a browser drops it.
+    expect(screen.getByRole("checkbox", { name: "Срок" }).closest("[inert]")).not.toBeNull()
+    expect(screen.getByRole("checkbox", { name: "Срок задачи" }).closest("[inert]")).toBeNull()
+    expect(screen.getByRole("checkbox", { name: "Документы" })).toBeChecked()
+    expect(screen.getByTestId("hidden")).toHaveTextContent("")
+    expect(screen.getByRole("checkbox", { name: "Срок задачи" })).toBeInTheDocument()
+  })
 })

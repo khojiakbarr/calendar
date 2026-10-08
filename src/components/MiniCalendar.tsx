@@ -2,9 +2,10 @@ import { useEffect, useState } from "react"
 import type { CalendarInstance } from "../instance"
 import type { CalendarLabels, WeekDay } from "../types"
 import { addDays, addMonths, addYears, isSameDay, isSameMonth, isWeekend, startOfMonth, startOfWeek } from "../core/date"
-import { formatTitle, formatWeekday } from "../core/format"
+import { formatMonthYear, formatTitle, formatWeekday } from "../core/format"
 import { classNames } from "../core/classNames"
 import { useSlotClass } from "./classesContext"
+import { ChevronIcon } from "./icons"
 
 const WEEKS_SHOWN = 6
 const DAYS_PER_WEEK = 7
@@ -43,17 +44,19 @@ export function MiniCalendar<TData = unknown>({ instance, labels }: MiniCalendar
     <div className={classNames("cal-mini", slotClass)}>
       <div className="cal-mini-header">
         <button type="button" className="cal-icon-btn" aria-label={`${labels.previous} ${labels.year}`} onClick={() => setVisibleMonth((month) => addYears(month, -1))}>
-          «
+          <ChevronIcon direction="left" double />
         </button>
         <button type="button" className="cal-icon-btn" aria-label={`${labels.previous} ${labels.month}`} onClick={() => setVisibleMonth((month) => addMonths(month, -1))}>
-          ‹
+          <ChevronIcon direction="left" />
         </button>
-        <span className="cal-mini-title">{formatTitle("month", visibleMonth, locale)}</span>
+        <span className="cal-mini-title" title={formatTitle("month", visibleMonth, locale)}>
+          {formatMonthYear(visibleMonth, locale)}
+        </span>
         <button type="button" className="cal-icon-btn" aria-label={`${labels.next} ${labels.month}`} onClick={() => setVisibleMonth((month) => addMonths(month, 1))}>
-          ›
+          <ChevronIcon direction="right" />
         </button>
         <button type="button" className="cal-icon-btn" aria-label={`${labels.next} ${labels.year}`} onClick={() => setVisibleMonth((month) => addYears(month, 1))}>
-          »
+          <ChevronIcon direction="right" double />
         </button>
       </div>
       <div className="cal-mini-grid" role="grid">

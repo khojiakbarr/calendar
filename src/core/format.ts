@@ -71,6 +71,25 @@ export function formatTitle(view: CalendarView, date: Date, locale: string): str
   }
 }
 
+/**
+ * A month and its year, short enough for a narrow header: the month view's
+ * title without a trailing year word — «октябрь 2026», not «октябрь 2026 г.».
+ * Only a literal that follows the year at the very end is dropped, so a
+ * language that writes its month after the year («2026年10月») keeps its form.
+ *
+ * @example
+ * formatMonthYear(new Date(2026, 9, 1), "ru") // "октябрь 2026"
+ */
+export function formatMonthYear(date: Date, locale: string): string {
+  const words = fallbackWords(locale)
+  if (words) return `${words.months[date.getMonth()] ?? ""} ${date.getFullYear()}`
+  const parts = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).formatToParts(date)
+  const last = parts.at(-1)
+  const beforeLast = parts.at(-2)
+  const trimmed = last?.type === "literal" && beforeLast?.type === "year" ? parts.slice(0, -1) : parts
+  return trimmed.map((part) => part.value).join("").trim()
+}
+
 /** The weekday name of `d`, e.g. "T" (narrow), "Tue" (short) or "Tuesday" (long). */
 export function formatWeekday(d: Date, locale: string, width: "narrow" | "short" | "long"): string {
   const words = fallbackWords(locale)

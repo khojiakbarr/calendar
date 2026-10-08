@@ -132,12 +132,23 @@ day, week and month views.
 
 With `onEventClick` the calendar's editor never opens for an event; the host
 opens its own page or dialog. A source with only `load` offers no drag, no
-resize, no «+ New event» and no editor at all.
+resize, no «+ New event» and no editor at all — unless the host creates
+records itself:
+
+```tsx
+<Calendar instance={calendar} onCreateRequest={(draft, anchor) => openMyMenu(draft.start, draft.end, anchor)} />
+```
+
+With `onCreateRequest` a drag or double-click on empty space, or «+ New
+event», hands the host the draft (its `start`, `end` and `allDay`) and where
+it was picked (`anchor`, null from the toolbar); the editor never opens for a
+new event.
 
 ### Grouped resources
 
-Give resources a `group` and the sidebar files them under a heading with a
-checkbox of its own: ticked while all of the group shows, mixed while part of
+Give resources a `group` and the sidebar files them under a heading that folds
+like an accordion — its name and chevron open and fold it — with a checkbox of
+its own: ticked while all of the group shows, mixed while part of
 it does, and one click shows or hides the whole group
 (`instance.setResourcesHidden(ids, hidden)`). Hidden resources are remembered
 as before.
@@ -516,6 +527,9 @@ Returns a `CalendarInstance<TData>` — see below.
 | `height` | `number \| string` | auto | CSS height of the root; omit to fill the parent (min 480px). |
 | `editorPresentation` | `"modal" \| "sheet" \| "auto"` | `"auto"` | How the event editor's `Dialog` presents itself; `"auto"` is a bottom sheet under a 640px viewport, a centred modal otherwise. |
 | `onEventClick` | `(event, chip) => void` | — | A click or Enter on an event. Given, the editor never opens; the host opens its own record. |
+| `onCreateRequest` | `(draft, anchor) => void` | — | A new event asked for — a drag or double-click on empty space, or New event (`anchor` null). Given, the editor never opens for a new event, and the gestures are offered even when the source cannot `create`. |
+| `collapsedGroups` | `string[]` | — | The sidebar's resource groups folded shut. Given, the folding is the host's to keep; omit it and the calendar keeps it while mounted, every group open. |
+| `onCollapsedGroupsChange` | `(groups) => void` | — | Told the folded groups after a fold or an open. |
 
 ### `CalendarInstance`
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.6 — 2026-10-08
+
+- `onCreateRequest(draft, anchor)` on `Calendar`: a drag or double-click on empty space, or New event (`anchor`
+  null), hands the draft to the host instead of opening the editor — the host makes the record its own way. The
+  gestures and New event are offered even when the source cannot `create`.
+- The sidebar's resource groups fold like an accordion: the group's name and chevron open and fold it, its checkbox
+  still shows or hides the whole group, and a folded group's entries are `inert`. `collapsedGroups` and
+  `onCollapsedGroupsChange` let a host keep the folding between visits; new labels `expandGroup` and `collapseGroup`.
+- A lifted month or all-day chip grows toward the side of its row with room — leftwards near the right edge — and
+  never past the row (`data-lift`, `--cal-lift-room`). It used to grow past Sunday's edge and make the page scroll
+  sideways. An all-day chip's lift keeps its side margins, so it no longer pokes 2px over the edge.
+- The mini calendar's header fits: «октябрь 2026», not a wrapped «октябрь 2026 г.» (`formatMonthYear`), and its
+  « ‹ › » steps — and the toolbar's ‹ › — are drawn chevrons, centred in their buttons.
+
 ## 0.2.5 — 2026-10-08
 
 - An event's tooltip no longer covers the event. It is measured at its own width wherever it stands

@@ -7,6 +7,7 @@ import {
   formatTime,
   formatTimeInput,
   formatTimeRange,
+  formatMonthYear,
   formatTitle,
   formatWeekday,
   parseDateTimeInputs,
@@ -153,5 +154,16 @@ describe("parseDateTimeInputs", () => {
 
   it("returns null for an empty time", () => {
     expect(parseDateTimeInputs("2022-03-15", "")).toBeNull()
+  })
+})
+
+describe("formatMonthYear", () => {
+  it("drops the year word Russian writes after the year", () => {
+    expect(formatMonthYear(new Date(2026, 9, 1), "ru")).toBe("октябрь 2026")
+  })
+
+  it("keeps a language whose month follows the year whole", () => {
+    expect(formatMonthYear(new Date(2026, 9, 1), "en-US")).toBe("October 2026")
+    expect(formatMonthYear(new Date(2026, 9, 1), "zh-CN")).toBe(new Intl.DateTimeFormat("zh-CN", { month: "long", year: "numeric" }).format(new Date(2026, 9, 1)))
   })
 })

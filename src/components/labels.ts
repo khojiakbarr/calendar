@@ -27,6 +27,8 @@ export const defaultLabels: CalendarLabels = {
   showWeekends: "Show weekends",
   filterPlaceholder: "Filter events",
   resources: "Calendars",
+  expandGroup: "Expand {name}",
+  collapseGroup: "Collapse {name}",
   toggleSidebar: "Toggle sidebar",
   editorEditTitle: "Edit event",
   editorNewTitle: "New event",

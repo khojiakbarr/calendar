@@ -43,6 +43,10 @@
 
   .cal-mini-title {
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     text-align: center;
     font-weight: 600;
     font-size: 13px;
@@ -192,7 +196,65 @@
     font-weight: 600;
   }
 
-  .cal-resource-group > .cal-resource-row:not(.cal-resource-group-row) {
+  /* A group's members sit under its name, a step in from its checkbox. */
+  .cal-resource-group-members .cal-resource-row {
     padding-inline-start: 20px;
+  }
+
+  /* A group's head: its checkbox, then its name and chevron as the button that folds it. */
+  .cal-resource-group-row {
+    cursor: default;
+  }
+
+  .cal-resource-group-toggle {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .cal-resource-group-toggle svg {
+    flex: none;
+    color: var(--cal-muted-fg);
+    transform: rotate(90deg);
+  }
+
+  .cal-resource-group-collapsed .cal-resource-group-toggle svg {
+    transform: none;
+  }
+
+  /* Open and folded by its rows' height, eased: a grid row from its content's height to none. */
+  .cal-resource-group-members {
+    display: grid;
+    grid-template-rows: 1fr;
+  }
+
+  .cal-resource-group-collapsed .cal-resource-group-members {
+    grid-template-rows: 0fr;
+  }
+
+  .cal-resource-group-members-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cal-resource-group-members {
+      transition: grid-template-rows 180ms ease-out;
+    }
+
+    .cal-resource-group-toggle svg {
+      transition: transform 180ms ease-out;
+    }
   }
 }

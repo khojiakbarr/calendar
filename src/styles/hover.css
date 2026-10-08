@@ -49,9 +49,11 @@
     position: relative;
     z-index: 6;
     align-self: start;
+    box-sizing: border-box;
     min-width: 100%;
     width: max-content;
-    max-width: 280px;
+    /* No further than the row's edge on the side it grows to (`prepareLift`). */
+    max-width: min(280px, var(--cal-lift-room, 280px));
     height: auto;
     min-height: 100%;
     white-space: normal;
@@ -59,6 +61,16 @@
     overflow-wrap: anywhere;
     box-shadow: var(--cal-hover-shadow);
     outline: none;
+  }
+
+  /* An all-day chip keeps 2px of margin each side, so its full width is its area less those. */
+  .cal-root .cal-allday-pill:is(:hover, :focus-visible) {
+    min-width: calc(100% - 4px);
+  }
+
+  /* Near the row's right edge a chip grows leftwards, its end held where it was. */
+  .cal-root :is(.cal-month-event, .cal-allday-pill)[data-lift="start"]:is(:hover, :focus-visible) {
+    justify-self: end;
   }
 
   /* A month's timed line has no fill of its own; lifted over its neighbours it needs one. */

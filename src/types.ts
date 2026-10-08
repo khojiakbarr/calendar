@@ -187,6 +187,10 @@ export interface CalendarLabels {
   showWeekends: string
   filterPlaceholder: string
   resources: string
+  /** A folded resource group's button: `{name}` is replaced with the group's name. */
+  expandGroup: string
+  /** An open resource group's button: `{name}` is replaced with the group's name. */
+  collapseGroup: string
   toggleSidebar: string
   editorEditTitle: string
   editorNewTitle: string

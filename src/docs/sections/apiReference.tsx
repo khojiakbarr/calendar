@@ -47,6 +47,9 @@ function Props() {
         ["height", code("number | string"), "fills parent", "CSS height of the root (minimum 480px when omitted)."],
         ["editorPresentation", code('"modal" | "sheet" | "auto"'), code('"auto"'), "A sheet under 640px, a centred modal otherwise."],
         ["onEventClick", code("(event, chip) => void"), "—", "A click or Enter on an event. Given, the editor never opens."],
+        ["onCreateRequest", code("(draft, anchor) => void"), "—", "A new event asked for. Given, the editor never opens for a new event; the host makes it."],
+        ["collapsedGroups", code("string[]"), "—", "The sidebar's resource groups folded shut, kept by the host."],
+        ["onCollapsedGroupsChange", code("(groups) => void"), "—", "Told the folded groups after a fold or an open."],
       ]}
     />
   )

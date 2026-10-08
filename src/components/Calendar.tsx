@@ -17,6 +17,8 @@ import { useHoverIntent, type HoverTarget } from "./useHoverIntent"
 import { useMediaQuery } from "./useMediaQuery"
 import { AgendaView } from "./views/AgendaView"
 import { rectOf } from "./views/anchor"
+import { prepareLift } from "./views/liftRoom"
+import { ResourceGroupsContext, type ResourceGroupsFolding } from "./resourceGroupsContext"
 import { DayView } from "./views/DayView"
 import { MonthView } from "./views/MonthView"
 import { WeekView } from "./views/WeekView"
@@ -66,6 +68,23 @@ export interface CalendarProps<TData = unknown> {
    * its own dialog. Creating by drag is unaffected.
    */
   onEventClick?: ((event: CalendarEvent<TData>, anchor: HTMLElement) => void) | undefined
+  /**
+   * A new event asked for — a drag (or double-click) on empty space, or the
+   * toolbar's New event. Given, the calendar's own editor never opens for a
+   * new event: the host makes the record its own way — a menu of what to
+   * make, then its own form — from the draft's start, end and `allDay`.
+   * The gestures are offered even when the source cannot `create`. `anchor`
+   * is where the request was made, `null` from the toolbar.
+   */
+  onCreateRequest?: ((draft: EventDraft<TData>, anchor: AnchorRect | null) => void) | undefined
+  /**
+   * The sidebar's resource groups folded shut. Given, the folding is the
+   * host's to keep — between visits, in its own storage — and a fold or an
+   * open is told through `onCollapsedGroupsChange`; omit it and the calendar
+   * keeps the folding itself while it is mounted, every group open at first.
+   */
+  collapsedGroups?: readonly string[] | undefined
+  onCollapsedGroupsChange?: ((groups: string[]) => void) | undefined
 }
 
 /** Whether `target` is a form control a global keyboard shortcut must not fire inside of. */
@@ -97,6 +116,9 @@ export function Calendar<TData = unknown>({
   classes = {},
   editorPresentation = "auto",
   onEventClick,
+  onCreateRequest,
+  collapsedGroups,
+  onCollapsedGroupsChange,
 }: CalendarProps<TData>) {
   const labels = useMemo(() => ({ ...defaultLabels, ...labelOverrides }), [labelOverrides])
   // On a narrow screen the sidebar is an overlay drawer, so it starts closed
@@ -115,6 +137,7 @@ export function Calendar<TData = unknown>({
   const rootSlotClass = classes.root
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((open) => !open), [])
+  const folding = useGroupFolding(collapsedGroups, onCollapsedGroupsChange)
 
   // The editor opens unanchored, so only a host's `onEventClick` uses the
   // chip element; `handleCreateRequest` below takes fewer parameters than its
@@ -132,16 +155,21 @@ export function Calendar<TData = unknown>({
   )
 
   const handleCreateRequest = useCallback(
-    (draft: EventDraft<TData>) => {
+    (draft: EventDraft<TData>, anchor: AnchorRect | null = null) => {
       hover.hide()
+      if (onCreateRequest) {
+        onCreateRequest(draft, anchor)
+        return
+      }
       editorState.openCreate(draft)
     },
-    [editorState, hover],
+    [editorState, hover, onCreateRequest],
   )
 
   const handleEventHover = useCallback(
     (event: CalendarEvent<TData> | null, el: HTMLElement | null) => {
       setLitGroup(event?.groupId ?? null)
+      if (el) prepareLift(el)
       // Measured when the tooltip appears, not now: by then the chip has grown to its lifted size, and a
       // tooltip placed beside the smaller one would cover the part it grew into.
       if (event && el) hover.show(() => ({ event, anchor: rectOf(el) }))
@@ -151,9 +179,15 @@ export function Calendar<TData = unknown>({
   )
 
   const handleNewEvent = useCallback(() => {
-    hover.hide()
-    editorState.openCreate(buildNewEventDraft(instance))
-  }, [editorState, hover, instance])
+    handleCreateRequest(buildNewEventDraft(instance), null)
+  }, [handleCreateRequest, instance])
+
+  // A host that makes its own records is offered the create gestures though its source cannot create.
+  const hostCreates = onCreateRequest !== undefined
+  const shown = useMemo(
+    () => (hostCreates && !instance.flags.create ? { ...instance, flags: { ...instance.flags, create: true } } : instance),
+    [hostCreates, instance],
+  )
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (isEditableTarget(event.target)) return
@@ -168,13 +202,14 @@ export function Calendar<TData = unknown>({
     <CalendarThemeContext.Provider value={theme}>
     <CalendarClassesContext.Provider value={classes}>
     <LitGroupContext.Provider value={litGroup}>
+    <ResourceGroupsContext.Provider value={folding}>
     <div className={classNames("cal-root", rootSlotClass, className)} data-theme={theme} style={rootStyle} onKeyDown={handleKeyDown}>
       <Toolbar
-        instance={instance}
+        instance={shown}
         labels={labels}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={sidebar ? handleToggleSidebar : undefined}
-        {...(instance.flags.create ? { onNewEvent: handleNewEvent } : {})}
+        {...(shown.flags.create ? { onNewEvent: handleNewEvent } : {})}
       />
 
       {instance.status === "loading" ? <div className="cal-progress" aria-hidden="true" /> : null}
@@ -192,8 +227,8 @@ export function Calendar<TData = unknown>({
           <Sidebar instance={instance} labels={labels} onClose={handleCloseSidebar} />
         ) : null}
         <div className="cal-main">
-          {renderView(instance.view, {
-            instance,
+          {renderView(shown.view, {
+            instance: shown,
             labels,
             onEventOpen: handleEventOpen,
             onCreateRequest: handleCreateRequest,
@@ -223,6 +258,7 @@ export function Calendar<TData = unknown>({
         />
       ) : null}
     </div>
+    </ResourceGroupsContext.Provider>
     </LitGroupContext.Provider>
     </CalendarClassesContext.Provider>
     </CalendarThemeContext.Provider>
@@ -282,5 +318,28 @@ function HoverTooltip<TData>({
       labels={labels}
       {...(resourceName === undefined ? {} : { resourceName })}
     />
+  )
+}
+
+/**
+ * The sidebar groups' folding: the host's when it passes `collapsedGroups`,
+ * else kept here — so closing and reopening the sidebar keeps it.
+ */
+function useGroupFolding(
+  controlled: readonly string[] | undefined,
+  onChange: ((groups: string[]) => void) | undefined,
+): ResourceGroupsFolding {
+  const [own, setOwn] = useState<readonly string[]>([])
+  const collapsed = controlled ?? own
+  return useMemo(
+    () => ({
+      isCollapsed: (group: string) => collapsed.includes(group),
+      toggle: (group: string) => {
+        const next = collapsed.includes(group) ? collapsed.filter((it) => it !== group) : [...collapsed, group]
+        if (controlled === undefined) setOwn(next)
+        onChange?.(next)
+      },
+    }),
+    [collapsed, controlled, onChange],
   )
 }

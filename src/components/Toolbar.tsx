@@ -5,6 +5,7 @@ import { formatTitle } from "../core/format"
 import { isoWeek } from "../core/date"
 import { fill } from "../core/labels"
 import { useSlotClass } from "./classesContext"
+import { ChevronIcon } from "./icons"
 import { ToolbarSettingsMenu } from "./ToolbarSettingsMenu"
 import { useMediaQuery } from "./useMediaQuery"
 import { ViewSwitcher } from "./ViewSwitcher"
@@ -65,10 +66,10 @@ export function Toolbar<TData = unknown>({ instance, labels, sidebarOpen, onTogg
           {isNarrow ? null : labels.today}
         </button>
         <button type="button" className="cal-icon-btn cal-btn-outline" aria-label={labels.previous} onClick={instance.goPrevious}>
-          ‹
+          <ChevronIcon direction="left" />
         </button>
         <button type="button" className="cal-icon-btn cal-btn-outline" aria-label={labels.next} onClick={instance.goNext}>
-          ›
+          <ChevronIcon direction="right" />
         </button>
         <h2 className="cal-toolbar-title" aria-live="polite">
           {title}
