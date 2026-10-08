@@ -171,7 +171,7 @@ export function Calendar<TData = unknown>({
         instance={instance}
         labels={labels}
         sidebarOpen={sidebarOpen}
-        onToggleSidebar={handleToggleSidebar}
+        onToggleSidebar={sidebar ? handleToggleSidebar : undefined}
         {...(instance.flags.create ? { onNewEvent: handleNewEvent } : {})}
       />
 

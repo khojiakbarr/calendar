@@ -229,4 +229,17 @@ describe("useGridDrag", () => {
 
     expect(container.querySelector(".cal-event-resize")).toBeNull()
   })
+
+  it("takes the pointer only once a press travels — a plain click must still reach the chip", () => {
+    const capture = vi.mocked(Element.prototype.setPointerCapture)
+    capture.mockClear()
+    const event = makeEvent({ id: "e1" })
+    const { body, container } = renderGrid(makeInstance({ events: [event] }))
+    const chip = must(container, '[data-event-id="e1"]')
+    fireEvent.pointerDown(chip, { pointerId: POINTER_ID, button: 0, clientX: xInColumn(1), clientY: 9 * 60 + 5 })
+    expect(capture).not.toHaveBeenCalled()
+    fireEvent.pointerMove(body, { pointerId: POINTER_ID, clientX: xInColumn(1), clientY: 9 * 60 + 40 })
+    expect(capture).toHaveBeenCalledTimes(1)
+    fireEvent.pointerUp(body, { pointerId: POINTER_ID, clientX: xInColumn(1), clientY: 9 * 60 + 40 })
+  })
 })

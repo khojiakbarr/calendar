@@ -263,11 +263,13 @@ function OverflowSlot<T>({ slot, labels, dayStartMinutes, onOpen }: { slot: Colu
       type="button"
       className="cal-timegrid-more"
       style={blockStyle({ startMinutes: slot.startMinutes, endMinutes: slot.endMinutes, dayStartMinutes, column: slot.column, columns: slot.columns })}
+      // The slot is a column wide — a sliver in a week — so it shows «+4»; its name and title say the rest.
+      aria-label={fill(labels.more, { n: slot.count })}
       title={slot.events.map((event) => event.name || labels.untitled).join("\n")}
       onClick={onOpen}
       onDoubleClick={(mouse) => mouse.stopPropagation()}
     >
-      {fill(labels.more, { n: slot.count })}
+      +{slot.count}
     </button>
   )
 }

@@ -39,4 +39,14 @@ describe("a source with only load", () => {
     fireEvent.doubleClick(cell)
     expect(screen.queryByRole("dialog")).toBeNull()
   })
+
+  it("draws no sidebar toggle when the calendar has no sidebar", async () => {
+    function NoSidebar() {
+      const instance = useCalendar({ id: "ro-nosidebar", source: READ_ONLY, now: clock.now, initialView: "week" })
+      return <Calendar instance={instance} sidebar={false} />
+    }
+    render(<NoSidebar />)
+    await screen.findByText("Звонок")
+    expect(screen.queryByRole("button", { name: defaultLabels.toggleSidebar })).toBeNull()
+  })
 })

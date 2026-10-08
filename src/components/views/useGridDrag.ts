@@ -57,12 +57,16 @@ function durationOf<T>(event: CalendarEvent<T>): number {
 }
 
 /**
- * Routes the rest of the gesture to `body`.
+ * Routes the rest of the gesture to `body` — once the press has travelled
+ * far enough to be a drag, never on the press itself.
  *
  * WHY: without capture, the pointer leaving the body — over the gutter, past
  * the window edge — stops delivering moves and the drag freezes half-done.
  * Capture also means the final `pointerup` always arrives here, so the hook
- * needs no window-level listeners to register and tear down.
+ * needs no window-level listeners to register and tear down. Taken on the
+ * press, though, it sends the release — and so the `click` — to the body
+ * instead of the chip: in Chrome a plain click on a timed event opened
+ * nothing, and the «+N» slot never opened the day.
  */
 function capturePointer(body: HTMLElement, pointerId: number): void {
   // jsdom and pre-pointer-events browsers have no capture at all; the drag still
@@ -147,6 +151,8 @@ export function useGridDrag<T>(options: UseGridDragOptions<T>): GridDrag<T> {
     if (pointer.button !== 0) return // secondary buttons open menus, they do not drag
     const body = bodyRef.current
     const target = pointer.target instanceof HTMLElement ? pointer.target : null
+    // «+N» is a button into a roomier view, not empty space to draw an event in.
+    if (target?.closest(".cal-timegrid-more")) return
     const column = target?.closest<HTMLElement>(".cal-timegrid-col") ?? null
     if (!body || !target || !column) return
     const columnIndex = Number(column.dataset.column)
@@ -173,7 +179,6 @@ export function useGridDrag<T>(options: UseGridDragOptions<T>): GridDrag<T> {
       startMinutes,
       endMinutes: event ? startMinutes + durationOf(event) : 0,
     }
-    capturePointer(body, pointer.pointerId)
   }
 
   const handlePointerMove = (pointer: ReactPointerEvent<HTMLDivElement>): void => {
@@ -183,6 +188,9 @@ export function useGridDrag<T>(options: UseGridDragOptions<T>): GridDrag<T> {
       Math.abs(pointer.clientX - session.startX) >= GESTURE_THRESHOLD_PX ||
       Math.abs(pointer.clientY - session.startY) >= GESTURE_THRESHOLD_PX
     if (!ghostRef.current && !movedFar) return // still within click tolerance
+    // The press has become a drag: only now take the pointer, so a click stays the chip's.
+    const body = bodyRef.current
+    if (!draggedRef.current && body) capturePointer(body, session.pointerId)
     draggedRef.current = true
     setGhost(ghostFor(session, pointer.clientX, pointer.clientY))
   }

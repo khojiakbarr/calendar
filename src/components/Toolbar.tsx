@@ -19,7 +19,8 @@ export interface ToolbarProps<TData = unknown> {
   labels: CalendarLabels
   /** Whether the sidebar is currently shown, reflected as the toggle button's pressed state. */
   sidebarOpen: boolean
-  onToggleSidebar: () => void
+  /** Omit to draw no sidebar toggle — a calendar rendered with `sidebar={false}` has nothing to toggle. */
+  onToggleSidebar?: (() => void) | undefined
   /** Omit to hide the "+ New event" button even when `instance.flags.create` is true. */
   onNewEvent?: () => void
 }
@@ -47,15 +48,17 @@ export function Toolbar<TData = unknown>({ instance, labels, sidebarOpen, onTogg
   return (
     <div className={classNames("cal-toolbar", slotClass)}>
       <div className="cal-toolbar-group">
-        <button
-          type="button"
-          className="cal-icon-btn"
-          aria-label={labels.toggleSidebar}
-          aria-pressed={sidebarOpen}
-          onClick={onToggleSidebar}
-        >
-          <HamburgerIcon />
-        </button>
+        {onToggleSidebar ? (
+          <button
+            type="button"
+            className="cal-icon-btn"
+            aria-label={labels.toggleSidebar}
+            aria-pressed={sidebarOpen}
+            onClick={onToggleSidebar}
+          >
+            <HamburgerIcon />
+          </button>
+        ) : null}
         <ToolbarSettingsMenu instance={instance} labels={labels} />
         <button type="button" className="cal-btn cal-btn-outline cal-toolbar-today" aria-label={labels.today} onClick={instance.goToday}>
           <CalendarIcon />
