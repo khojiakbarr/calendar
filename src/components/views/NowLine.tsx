@@ -10,6 +10,8 @@ export interface NowLineProps {
   dayStartHour: number
   /** Hour the grid ends at. */
   dayEndHour: number
+  /** The calendar's clock (`settings.now`). */
+  now: () => Date
 }
 
 /**
@@ -23,15 +25,15 @@ export interface NowLineProps {
  * @returns The marker, or `null` when now falls outside the grid.
  *
  * @example
- * {isToday && <NowLine dayStartHour={0} dayEndHour={24} />}
+ * {isToday && <NowLine dayStartHour={0} dayEndHour={24} now={settings.now} />}
  */
-export function NowLine({ dayStartHour, dayEndHour }: NowLineProps) {
-  const [now, setNow] = useState<Date>(() => new Date())
+export function NowLine({ dayStartHour, dayEndHour, now: readNow }: NowLineProps) {
+  const [now, setNow] = useState<Date>(() => readNow())
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), TICK_MS)
+    const timer = window.setInterval(() => setNow(readNow()), TICK_MS)
     return () => window.clearInterval(timer)
-  }, [])
+  }, [readNow])
 
   const minutes = minutesOfDay(now)
   const startMinutes = dayStartHour * 60

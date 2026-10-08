@@ -23,6 +23,12 @@ export interface CalendarSettings {
   snapMinutes: number
   /** Length of an event created with a click. Default 60. */
   defaultEventMinutes: number
+  /**
+   * What "now" is: the day highlighted as today, the now-line, «Today», and
+   * the day a calendar opens on. Default `() => new Date()`. A host whose
+   * users live in another zone than their browser passes its own.
+   */
+  now: () => Date
 }
 
 /**

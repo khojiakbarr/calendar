@@ -9,6 +9,8 @@ export interface UseCalendarViewOptions {
   showWeekends: boolean
   /** The day first anchored. Defaults to today. */
   initialDate?: Date | undefined
+  /** The host's clock: where the calendar opens without `initialDate`, and where «Today» goes. */
+  now: () => Date
 }
 
 /** Where the calendar is pointing, and the four ways to move it. */
@@ -42,8 +44,12 @@ export function useCalendarView({
   weekStartsOn,
   showWeekends,
   initialDate,
+  now,
 }: UseCalendarViewOptions): CalendarViewState {
-  const [date, setDateState] = useState<Date>(() => initialDate ?? new Date())
+  const [date, setDateState] = useState<Date>(() => initialDate ?? now())
+  // Read through a ref so «Today» keeps one identity even when a host passes an inline clock.
+  const nowRef = useRef(now)
+  nowRef.current = now
 
   const range = useMemo(() => visibleRange(view, date, weekStartsOn), [view, date, weekStartsOn])
   const days = useMemo(
@@ -59,7 +65,7 @@ export function useCalendarView({
   viewRef.current = view
 
   const setDate = useCallback((next: Date) => setDateState(next), [])
-  const goToday = useCallback(() => setDateState(new Date()), [])
+  const goToday = useCallback(() => setDateState(nowRef.current()), [])
   const goNext = useCallback(() => setDateState((previous) => shiftDate(viewRef.current, previous, 1)), [])
   const goPrevious = useCallback(() => setDateState((previous) => shiftDate(viewRef.current, previous, -1)), [])
 

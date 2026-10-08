@@ -26,7 +26,7 @@ export interface MiniCalendarProps<TData = unknown> {
 export function MiniCalendar<TData = unknown>({ instance, labels }: MiniCalendarProps<TData>) {
   const { weekStartsOn, locale } = instance.settings
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(instance.date))
-  const today = new Date()
+  const today = instance.settings.now()
 
   useEffect(() => {
     setVisibleMonth(startOfMonth(instance.date))

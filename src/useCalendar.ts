@@ -26,6 +26,9 @@ const FALLBACK_LOCALE = "en-US"
 /** Colour of an event that neither it nor its resource gives one. */
 const DEFAULT_EVENT_COLOR = "var(--cal-accent)"
 
+/** The browser's clock, the default `now`; module-level so its identity never changes. */
+const systemNow = (): Date => new Date()
+
 /** Everything {@link useCalendar} accepts. Only `id` and `source` are required. */
 export interface UseCalendarOptions<TData = unknown> {
   /**
@@ -60,6 +63,8 @@ export interface UseCalendarOptions<TData = unknown> {
   snapMinutes?: number
   /** Length of an event created with a click. Default 60. */
   defaultEventMinutes?: number
+  /** What "now" is. Default the browser's clock. See {@link CalendarSettings.now}. */
+  now?: () => Date
   /** Told about every rejection, with the action that caused it. */
   onError?: (error: unknown, action: EventSourceAction) => void
 }
@@ -100,6 +105,7 @@ export function useCalendar<TData = unknown>({
   dayEndHour = 24,
   snapMinutes = 15,
   defaultEventMinutes = 60,
+  now = systemNow,
   onError,
 }: UseCalendarOptions<TData>): CalendarInstance<TData> {
   const settings: CalendarSettings = useMemo(
@@ -110,8 +116,9 @@ export function useCalendar<TData = unknown>({
       dayEndHour,
       snapMinutes,
       defaultEventMinutes,
+      now,
     }),
-    [weekStartsOn, locale, dayStartHour, dayEndHour, snapMinutes, defaultEventMinutes],
+    [weekStartsOn, locale, dayStartHour, dayEndHour, snapMinutes, defaultEventMinutes, now],
   )
 
   const resourceIds = useMemo(() => resources.map((resource) => resource.id), [resources])
@@ -124,6 +131,7 @@ export function useCalendar<TData = unknown>({
     weekStartsOn,
     showWeekends,
     initialDate,
+    now,
   })
 
   const [filterText, setFilterTextState] = useState("")

@@ -38,7 +38,7 @@ export interface MonthCellProps<TData = unknown> {
 export function MonthCell<TData = unknown>({ day, instance, isDropTarget, onDoubleClickEmpty }: MonthCellProps<TData>) {
   const { locale } = instance.settings
   const inCurrentMonth = isSameMonth(day, instance.date)
-  const isToday = isSameDay(day, new Date())
+  const isToday = isSameDay(day, instance.settings.now())
   const isFirstOfMonth = day.getDate() === 1
 
   const handleDoubleClick = (mouseEvent: MouseEvent<HTMLDivElement>): void => {

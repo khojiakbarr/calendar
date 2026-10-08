@@ -544,6 +544,9 @@ describe("settings", () => {
       dayEndHour: 24,
       snapMinutes: 15,
       defaultEventMinutes: 60,
+      now: expect.any(Function),
     })
+    // The default clock is the browser's.
+    expect(Math.abs(result.current.settings.now().getTime() - Date.now())).toBeLessThan(1000)
   })
 })

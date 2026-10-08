@@ -19,7 +19,7 @@ interface AgendaDayRowProps<TData> {
 /** One day's block in the agenda: its date header, then every event that touches it, spans first. */
 export function AgendaDayRow<TData>({ group, instance, labels, onEventOpen }: AgendaDayRowProps<TData>) {
   const { locale } = instance.settings
-  const isToday = isSameDay(group.day, new Date())
+  const isToday = isSameDay(group.day, instance.settings.now())
 
   return (
     <div className={classNames("cal-agenda-day", isToday && "cal-agenda-today")}>

@@ -58,7 +58,7 @@ export function TimeGrid<T>({ instance, labels, onEventOpen, onCreateRequest, on
   const scrollRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const gridTemplateColumns = `var(--cal-gutter-width) repeat(${days.length}, minmax(0, 1fr))`
-  const today = new Date()
+  const today = settings.now()
   const referenceDay = days[0] ?? today
   const hourOffsets = Array.from({ length: Math.max(0, hourCount) }, (_, index) => index)
 
@@ -183,7 +183,7 @@ export function TimeGrid<T>({ instance, labels, onEventOpen, onCreateRequest, on
                   />
                 ))}
 
-                {isToday && <NowLine dayStartHour={settings.dayStartHour} dayEndHour={settings.dayEndHour} />}
+                {isToday && <NowLine dayStartHour={settings.dayStartHour} dayEndHour={settings.dayEndHour} now={settings.now} />}
 
                 {ghost && ghost.column === column && (
                   <div

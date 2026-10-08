@@ -37,6 +37,7 @@ function chunkIntoWeeks(days: readonly Date[]): Date[][] {
  */
 export function YearMonth<TData = unknown>({ instance, labels, monthDate, countsByDay }: YearMonthProps<TData>) {
   const { locale, weekStartsOn } = instance.settings
+  const today = instance.settings.now()
   // Mini months always show the full week, regardless of the showWeekends preference.
   const days = useMemo(() => visibleDays("month", monthDate, weekStartsOn, true), [monthDate, weekStartsOn])
   const weeks = useMemo(() => chunkIntoWeeks(days), [days])
@@ -72,7 +73,7 @@ export function YearMonth<TData = unknown>({ instance, labels, monthDate, counts
                     className={classNames(
                       "cal-year-day",
                       !isSameMonth(day, monthDate) && "cal-year-day-other",
-                      isSameDay(day, new Date()) && "cal-year-today",
+                      isSameDay(day, today) && "cal-year-today",
                       heatClass(count),
                     )}
                     data-day={formatDateInput(day)}

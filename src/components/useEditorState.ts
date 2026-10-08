@@ -120,7 +120,7 @@ export function useEditorState<T>(instance: CalendarInstance<T>): EditorControll
  */
 export function buildNewEventDraft<T>(instance: CalendarInstance<T>): EventDraft<T> {
   const { snapMinutes, defaultEventMinutes } = instance.settings
-  const now = new Date()
+  const now = instance.settings.now()
   const startMinutes = isSameDay(instance.date, now)
     ? Math.min(MINUTES_PER_DAY, Math.ceil(minutesOfDay(now) / snapMinutes) * snapMinutes)
     : DEFAULT_START_HOUR * 60

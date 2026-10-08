@@ -11,7 +11,7 @@ import { MonthView } from "./MonthView"
 /** March 15 2022 — a Tuesday, matching the Bryntum demo month the rest of the suite anchors on. */
 const ANCHOR = new Date(2022, 2, 15)
 
-const SETTINGS: CalendarSettings = { weekStartsOn: 1, locale: "en-US", dayStartHour: 0, dayEndHour: 24, snapMinutes: 15, defaultEventMinutes: 60 }
+const SETTINGS: CalendarSettings = { weekStartsOn: 1, locale: "en-US", dayStartHour: 0, dayEndHour: 24, snapMinutes: 15, defaultEventMinutes: 60, now: () => new Date() }
 const FLAGS: Required<CalendarFeatureFlags> = { create: true, move: true, resize: true, edit: true, remove: true }
 
 let nextId = 0
