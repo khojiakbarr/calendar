@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3 — 2026-10-08
+
+- The time grid's head row is `--cal-day-header-height` tall (72px by default, at most 60px on a narrow
+  screen), so a head set to one line can be short too.
+
 ## 0.2.2 — 2026-10-08
 
 - Today in the year view is a circle again — 28px, centred — instead of an oval as wide as its column.

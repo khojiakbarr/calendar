@@ -34,6 +34,7 @@
     /* How large the date numerals are drawn — the day numbers, the agenda's, the mini-calendar's, the year's. */
     --cal-date-scale: 1;
     /* A day's head on the time grid (day and week). */
+    --cal-day-header-height: 72px;
     --cal-day-header-direction: column;
     --cal-day-header-gap: 2px;
     --cal-day-header-padding: 6px 4px 8px;
