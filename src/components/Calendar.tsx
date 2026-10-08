@@ -60,6 +60,12 @@ export interface CalendarProps<TData = unknown> {
    * straight through to `EventEditor`'s `presentation` prop.
    */
   editorPresentation?: DialogPresentation
+  /**
+   * A click (or Enter) on an event. Given, the calendar's own editor never
+   * opens for an event: the host opens the record its own way — its page,
+   * its own dialog. Creating by drag is unaffected.
+   */
+  onEventClick?: (event: CalendarEvent<TData>, anchor: HTMLElement) => void
 }
 
 /** Whether `target` is a form control a global keyboard shortcut must not fire inside of. */
@@ -90,6 +96,7 @@ export function Calendar<TData = unknown>({
   height,
   classes = {},
   editorPresentation = "auto",
+  onEventClick,
 }: CalendarProps<TData>) {
   const labels = useMemo(() => ({ ...defaultLabels, ...labelOverrides }), [labelOverrides])
   // On a narrow screen the sidebar is an overlay drawer, so it starts closed
@@ -109,17 +116,19 @@ export function Calendar<TData = unknown>({
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((open) => !open), [])
 
-  // Both handlers below take fewer parameters than the view-level callback
-  // types they are assigned to (`onEventOpen`/`onCreateRequest` still hand a
-  // chip element or an AnchorRect, since the tooltip and the drag-ghost
-  // machinery still need them) — the editor itself opens unanchored now, so
-  // there is nothing here to do with either.
+  // The editor opens unanchored, so only a host's `onEventClick` uses the
+  // chip element; `handleCreateRequest` below takes fewer parameters than its
+  // view-level type (the AnchorRect is for the drag-ghost machinery).
   const handleEventOpen = useCallback(
-    (event: CalendarEvent<TData>) => {
+    (event: CalendarEvent<TData>, anchor: HTMLElement) => {
       hover.hide()
+      if (onEventClick) {
+        onEventClick(event, anchor)
+        return
+      }
       editorState.openEdit(event)
     },
-    [editorState, hover],
+    [editorState, hover, onEventClick],
   )
 
   const handleCreateRequest = useCallback(

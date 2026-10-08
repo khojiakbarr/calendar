@@ -55,3 +55,14 @@ describe("a record's dates together", () => {
     expect(chip(container, "due").className).not.toContain("cal-event-lit")
   })
 })
+
+describe("a host's click", () => {
+  it("hands the event to the host and opens no editor", async () => {
+    const clicked: string[] = []
+    const { container } = render(<Month onEventClick={(event) => clicked.push(event.id)} />)
+    await screen.findByText("Оплата")
+    fireEvent.click(chip(container, "due"))
+    expect(clicked).toEqual(["due"])
+    expect(screen.queryByRole("dialog")).toBeNull()
+  })
+})
