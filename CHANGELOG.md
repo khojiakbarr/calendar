@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1 — 2026-10-08
+
+- A crowded hour stays readable: a cluster of overlapping timed events takes at most `maxEventColumns`
+  columns (default 3 in a week, twice that in the day view), and the rest gather into one «+N» slot
+  (`.cal-timegrid-more`) that opens the day view from a week, or the agenda from a day. `limitColumns`
+  is exported beside `layoutDay`.
+- The agenda opens on today when the month shown holds it, rather than on the 1st.
+- `agendaSpans: "first"` lists a multi-day event once, under the first shown day it touches, instead of
+  under every day (`"each"`, the default) — a three-month plan is one row, not ninety.
+- On a phone an agenda row's text wraps instead of being cut after its date range, and a `marker` sits on
+  the row's label rather than on a line of its own.
+- Latin Uzbek gets CLDR's month and weekday names where the browser's `Intl` has none (Chrome gives
+  "M10"): «Oktabr 2026», «8-okt», «payshanba».
+
 ## 0.2.0 — 2026-10-08
 
 First release on npm, as `@hojiakbar_dev/calendar` (0.1.0 was never published).

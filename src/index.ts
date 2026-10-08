@@ -31,7 +31,7 @@ export type {
   PreferenceStorage,
   WeekDay,
 } from "./types"
-export type { CalendarInstance, CalendarSettings } from "./instance"
+export type { AgendaSpans, CalendarInstance, CalendarSettings } from "./instance"
 
 /*
  * The shell's own parts. Exported so a different layout can reuse the
@@ -75,8 +75,8 @@ export {
 export { eventLookClasses, TONE_COLOR, toneOf } from "./core/looks"
 export { groupResources } from "./core/resourceGroups"
 export type { ResourceGroup } from "./core/resourceGroups"
-export { layoutDay } from "./core/layout"
-export type { TimedBlock } from "./core/layout"
+export { layoutDay, limitColumns } from "./core/layout"
+export type { ColumnOverflow, TimedBlock } from "./core/layout"
 export { layoutSegments, limitRows } from "./core/spans"
 export type { Segment } from "./core/spans"
 export {
