@@ -11,6 +11,10 @@
   under every day (`"each"`, the default) — a three-month plan is one row, not ninety.
 - On a phone an agenda row's text wraps instead of being cut after its date range, and a `marker` sits on
   the row's label rather than on a line of its own.
+- A click on a timed event reaches it in Chrome: the time grid took the pointer on the press, so the
+  release — and the click — landed on the grid; it now takes it only once a press travels far enough to
+  be a drag. The «+N» slot reads «+4» in a narrow column, and `sidebar={false}` draws no sidebar toggle.
+- The docs and a live preview are on GitHub Pages: https://khojiakbarr.github.io/calendar/
 - Latin Uzbek gets CLDR's month and weekday names where the browser's `Intl` has none (Chrome gives
   "M10"): «Oktabr 2026», «8-okt», «payshanba».
 
