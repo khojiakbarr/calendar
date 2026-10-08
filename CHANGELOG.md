@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4 — 2026-10-08
+
+- The sidebar's checkboxes are the calendar's own, not the browser's: its ground and edge in dark mode
+  too, filled with the row's colour under a tick when checked, a dash when mixed.
+- The loading line stays inside the calendar: a short bar running along a clipped track, instead of a
+  full-width bar sliding four widths past the edge.
+
 ## 0.2.3 — 2026-10-08
 
 - The time grid's head row is `--cal-day-header-height` tall (72px by default, at most 60px on a narrow

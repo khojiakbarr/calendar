@@ -272,11 +272,62 @@
   }
 
   /* Checkbox */
+  /*
+   * A checkbox drawn by the calendar, not the browser: the browser's own is a
+   * grey box in dark mode whatever the theme says. Its ground and edge are the
+   * calendar's tokens; checked, it fills with the row's colour
+   * (`--cal-event-color`, the accent for a group) under a tick; mixed, a dash.
+   */
   .cal-checkbox {
+    appearance: none;
+    display: inline-grid;
+    place-content: center;
+    flex: none;
     width: 18px;
     height: 18px;
-    accent-color: var(--cal-event-color, var(--cal-accent));
+    margin: 0;
+    border: 1.5px solid var(--cal-border-strong);
+    border-radius: 4px;
+    background-color: var(--cal-bg);
     cursor: pointer;
+    transition:
+      background-color 120ms ease-out,
+      border-color 120ms ease-out;
+  }
+
+  .cal-checkbox::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background-color: var(--cal-on-accent);
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+    transform: scale(0);
+    transition: transform 120ms ease-out;
+  }
+
+  .cal-checkbox:hover {
+    border-color: var(--cal-event-color, var(--cal-accent));
+  }
+
+  .cal-checkbox:is(:checked, :indeterminate) {
+    border-color: var(--cal-event-color, var(--cal-accent));
+    background-color: var(--cal-event-color, var(--cal-accent));
+  }
+
+  .cal-checkbox:checked::after {
+    transform: scale(1);
+  }
+
+  .cal-checkbox:indeterminate::after {
+    height: 2px;
+    clip-path: none;
+    border-radius: 1px;
+    transform: scale(1);
+  }
+
+  .cal-checkbox:focus-visible {
+    outline: 2px solid var(--cal-focus-ring);
+    outline-offset: 2px;
   }
 
   /* Text input */
@@ -316,23 +367,40 @@
     0% {
       transform: translateX(-100%);
     }
-    50% {
-      transform: translateX(400%);
-    }
     100% {
-      transform: translateX(400%);
+      transform: translateX(340%);
     }
   }
 
-  /* Loading progress bar */
+  /*
+   * Loading: a faint track as wide as the calendar, a short bar running along
+   * it. The track clips the bar, so it never runs past the calendar's edge.
+   */
   .cal-progress {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 2px;
+    overflow: hidden;
+    background-color: color-mix(in srgb, var(--cal-accent) 18%, transparent);
+  }
+
+  .cal-progress::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 30%;
     background-color: var(--cal-accent);
-    animation: cal-progress 1.2s linear infinite;
+    animation: cal-progress 1.2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cal-progress::before {
+      animation: none;
+      width: 100%;
+      opacity: 0.6;
+    }
   }
 
   /*
