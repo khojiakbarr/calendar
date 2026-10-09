@@ -9,13 +9,14 @@
    */
 
   /* plan — a dashed outline of what was planned; no fill, as nothing has happened in it yet. */
-  .cal-look-plan:is(.cal-event-timed, .cal-allday-pill, .cal-month-event-span, .cal-agenda-span) {
+  .cal-look-plan:is(.cal-event-timed, .cal-allday-pill, .cal-month-event, .cal-agenda-span) {
     background: transparent;
     border: 1.5px dashed var(--cal-event-color);
     color: var(--cal-fg);
   }
 
-  .cal-look-plan:is(.cal-event-timed, .cal-allday-pill, .cal-month-event-span):hover {
+  /* Lifted (`hover.css`) a plan stays a plan: the faintest tint, opaque over the chips it covers. */
+  .cal-look-plan:is(.cal-event-timed, .cal-allday-pill, .cal-month-event):is(:hover, :focus-visible) {
     background: color-mix(in srgb, var(--cal-event-color) 10%, var(--cal-bg));
   }
 
@@ -29,7 +30,7 @@
   }
 
   /* overrun — the days past the plan, striped over the tone's tint. */
-  .cal-look-overrun:is(.cal-event-timed, .cal-allday-pill, .cal-month-event-span, .cal-agenda-span) {
+  .cal-look-overrun:is(.cal-event-timed, .cal-allday-pill, .cal-month-event, .cal-agenda-span) {
     background-image: repeating-linear-gradient(
       135deg,
       color-mix(in srgb, var(--cal-event-color) 45%, transparent) 0 4px,

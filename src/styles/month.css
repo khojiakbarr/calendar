@@ -173,9 +173,14 @@
     border-bottom-right-radius: 0;
   }
 
+  /* A timed line wears its colour as the week's chips do: a tint of it behind the dot, the time and the name. */
   .cal-month-event-timed {
-    background-color: transparent;
-    color: var(--cal-fg);
+    background-color: color-mix(in srgb, var(--cal-event-color) var(--cal-chip-mix), var(--cal-bg));
+    color: var(--cal-event-fg);
+  }
+
+  .cal-month-event-timed:hover {
+    background-color: color-mix(in srgb, var(--cal-event-color) var(--cal-chip-mix-hover), var(--cal-bg));
   }
 
   .cal-month-event-dot {
@@ -186,9 +191,10 @@
     flex-shrink: 0;
   }
 
+  /* The week chip's time colour: the muted grey would not hold its contrast on the tint. */
   .cal-month-event-time {
     flex-shrink: 0;
-    color: var(--cal-muted-fg);
+    color: color-mix(in srgb, var(--cal-fg) 70%, transparent);
   }
 
   .cal-month-event-name {

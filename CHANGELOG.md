@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.9 — 2026-10-09
+
+- A month's timed event wears its colour, as the week's chips do: a tint of it (`--cal-chip-mix`, stronger under the
+  pointer) behind the dot, the time and the name, where it used to be a bare line on the card. Lifted under the
+  pointer it keeps that tint instead of turning white. Its time is the week chip's colour, which holds its contrast on
+  the tint.
+- A timed month event takes the looks too: `plan` is its dashed outline with no fill, `overrun` its stripes. A plan
+  lifted by the keyboard's focus keeps its faint fill, as one under the pointer does.
+
 ## 0.2.8 — 2026-10-09
 
 - The loading line sits under the toolbar however tall it is — two rows on a narrow screen, where it used to run

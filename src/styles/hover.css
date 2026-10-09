@@ -73,9 +73,9 @@
     justify-self: end;
   }
 
-  /* A month's timed line has no fill of its own; lifted over its neighbours it needs one. */
-  .cal-root .cal-month-event-timed:is(:hover, :focus-visible) {
-    background-color: var(--cal-bg);
+  /* Lifted over its neighbours a month's timed line keeps its own tint, the hover's — opaque, never the card's white. */
+  .cal-root .cal-month-event-timed:not(.cal-look-plan):is(:hover, :focus-visible) {
+    background-color: color-mix(in srgb, var(--cal-event-color) var(--cal-chip-mix-hover), var(--cal-bg));
   }
 
   .cal-root :is(.cal-month-event, .cal-allday-pill):is(:hover, :focus-visible) .cal-month-event-name {
