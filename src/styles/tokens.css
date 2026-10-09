@@ -385,13 +385,18 @@
   /*
    * Loading: a faint track as wide as the calendar, a short bar running along
    * it. The track clips the bar, so it never runs past the calendar's edge.
+   *
+   * It sits in the flow right after the toolbar, so it is under the toolbar
+   * however tall the toolbar is — two rows on a narrow screen, where a fixed
+   * offset of one toolbar's height put it across the second row. Its negative
+   * margin lays it over the body's first 2px, so nothing moves while it shows.
    */
   .cal-progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
     height: 2px;
+    margin-bottom: -2px;
     overflow: hidden;
     background-color: color-mix(in srgb, var(--cal-accent) 18%, transparent);
   }

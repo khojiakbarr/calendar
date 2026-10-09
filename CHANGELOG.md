@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8 — 2026-10-09
+
+- The loading line sits under the toolbar however tall it is — two rows on a narrow screen, where it used to run
+  across the second row. It is in the flow right after the toolbar now, not at one toolbar's height from the top,
+  and lies over the body's first 2px, so nothing moves while it shows.
+
 ## 0.2.7 — 2026-10-08
 
 - The calendar's rounded border shows whole at every corner: the root clips what it holds to its corners

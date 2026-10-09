@@ -1,16 +1,10 @@
 @layer calendar {
-  /* Calendar shell: root sizing, and the loading/error strip under the toolbar. */
+  /* Calendar shell: root sizing, and the error strip under the toolbar (the loading line is in tokens.css). */
 
   .cal-root {
     /* Only applies until a `height` prop overrides it inline — see Calendar.tsx. */
     height: 100%;
     min-height: 480px;
-  }
-
-  /* tokens.css pins .cal-progress to the very top of .cal-root; nudge it down
-     to sit under the 48px toolbar, where the loading indicator belongs. */
-  .cal-progress {
-    top: var(--cal-header-height);
   }
 
   .cal-error {
