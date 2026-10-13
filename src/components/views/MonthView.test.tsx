@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { fireEvent } from "@testing-library/react"
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { defaultLabels } from "../labels"
@@ -136,22 +136,110 @@ describe("MonthView", () => {
     expect(chip).toHaveTextContent("Standup")
   })
 
-  it('shows "+N more" once a day overflows maxRows, and clicking it navigates to the day view', () => {
-    const day = new Date(2022, 2, 9)
-    const standup = makeEvent({ start: new Date(2022, 2, 9, 9, 0), end: new Date(2022, 2, 9, 10, 0), name: "Standup" })
-    const lunch = makeEvent({ start: new Date(2022, 2, 9, 12, 0), end: new Date(2022, 2, 9, 13, 0), name: "Lunch" })
+  it("shows a day's overflow as a dot per hidden event, four at most, named with the whole count", () => {
+    const events = Array.from({ length: 7 }, (_, i) => makeEvent({ start: new Date(2022, 2, 9, 8 + i), end: new Date(2022, 2, 9, 9 + i), name: `Slot ${i}` }))
+    const { container } = render(<MonthView {...makeProps(makeInstance({ events }), { rowLimit: 1 })} />)
+
+    const more = screen.getByRole("button", { name: "+6 more" })
+    expect(more).toHaveAttribute("aria-haspopup", "dialog")
+    expect(more).toHaveAttribute("aria-expanded", "false")
+    expect(more.querySelectorAll(".cal-month-more-dot")).toHaveLength(4)
+    expect(more).toHaveTextContent("+2")
+    expect(container.querySelectorAll(".cal-month-more")).toHaveLength(1)
+  })
+
+  it("keeps a line for the dots in a week that overflows, so they never fall under the row's edge", () => {
+    // Six weeks in 600px: a 100px cell holds three rows — two beside the dots' line.
+    const height = vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(600)
+    const day = (n: number, name: string) => makeEvent({ start: new Date(2022, 2, 9, 8 + n), end: new Date(2022, 2, 9, 9 + n), name })
+    const measured = (events: CalendarEvent[]) => (
+      <MonthView instance={makeInstance({ events })} labels={defaultLabels} onEventOpen={vi.fn()} onCreateRequest={vi.fn()} onEventHover={vi.fn()} />
+    )
+
+    const fits = render(measured([day(0, "A"), day(1, "B"), day(2, "C")]))
+    expect(fits.container.querySelectorAll(".cal-month-event")).toHaveLength(3)
+    expect(fits.container.querySelector(".cal-month-more")).toBeNull()
+    fits.unmount()
+
+    const overflows = render(measured([day(0, "A"), day(1, "B"), day(2, "C"), day(3, "D")]))
+    expect(overflows.container.querySelectorAll(".cal-month-event")).toHaveLength(2)
+    const more = screen.getByRole("button", { name: "+2 more" })
+    expect(more.style.gridRow).toBe("3")
+    height.mockRestore()
+  })
+
+  it("shows two dots beside the count in a phone's narrow cell", () => {
+    const events = Array.from({ length: 7 }, (_, i) => makeEvent({ start: new Date(2022, 2, 9, 8 + i), end: new Date(2022, 2, 9, 9 + i), name: `Slot ${i}` }))
+    render(<MonthView {...makeProps(makeInstance({ events }), { rowLimit: 1, compact: true })} />)
+    const more = screen.getByRole("button", { name: "+6 more" })
+    expect(more.querySelectorAll(".cal-month-more-dot")).toHaveLength(2)
+    expect(more).toHaveTextContent("+4")
+  })
+
+  it("draws a hidden plan's dot as a ring", () => {
+    const shown = makeEvent({ start: new Date(2022, 2, 9, 8), end: new Date(2022, 2, 9, 9), name: "Shown" })
+    const plan = makeEvent({ start: new Date(2022, 2, 9, 10), end: new Date(2022, 2, 9, 11), name: "Plan", appearance: "plan" })
+    render(<MonthView {...makeProps(makeInstance({ events: [shown, plan] }), { rowLimit: 1 })} />)
+    expect(screen.getByRole("button", { name: "+1 more" }).querySelector(".cal-month-more-dot")).toHaveClass("cal-month-more-dot-plan")
+  })
+
+  it("opens the day's card on its dots: every event of the day, the shown ones too, in the cell's order", () => {
+    const span = makeEvent({ start: new Date(2022, 2, 7), end: new Date(2022, 2, 12), allDay: true, name: "Conference" })
+    const lunch = makeEvent({ start: new Date(2022, 2, 9, 12), end: new Date(2022, 2, 9, 13), name: "Lunch" })
+    const standup = makeEvent({ start: new Date(2022, 2, 9, 9), end: new Date(2022, 2, 9, 10), name: "Standup" })
+    render(<MonthView {...makeProps(makeInstance({ events: [lunch, standup, span] }), { rowLimit: 1 })} />)
+
+    const more = screen.getByRole("button", { name: "+2 more" })
+    fireEvent.click(more)
+
+    const card = screen.getByRole("dialog", { name: "Wednesday, March 9" })
+    expect(more).toHaveAttribute("aria-expanded", "true")
+    const items = within(card).getAllByRole("listitem").map((item) => item.textContent)
+    expect(items).toEqual(["ConferenceMar 7 – Mar 11", "9 AMStandup", "12 PMLunch"])
+  })
+
+  it("opens an event picked in the day's card, anchored to the dots, and closes the card", () => {
+    const shown = makeEvent({ start: new Date(2022, 2, 9, 8), end: new Date(2022, 2, 9, 9), name: "Shown" })
+    const lunch = makeEvent({ start: new Date(2022, 2, 9, 12), end: new Date(2022, 2, 9, 13), name: "Lunch" })
+    const onEventOpen = vi.fn()
+    render(<MonthView {...makeProps(makeInstance({ events: [shown, lunch] }), { rowLimit: 1, onEventOpen })} />)
+
+    const more = screen.getByRole("button", { name: "+1 more" })
+    fireEvent.click(more)
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: /Lunch/ }))
+
+    expect(onEventOpen).toHaveBeenCalledWith(expect.objectContaining({ id: lunch.id }), more)
+    expect(screen.queryByRole("dialog")).toBeNull()
+  })
+
+  it("opens the day view from the date in the day's card", () => {
+    const standup = makeEvent({ start: new Date(2022, 2, 9, 9), end: new Date(2022, 2, 9, 10), name: "Standup" })
+    const lunch = makeEvent({ start: new Date(2022, 2, 9, 12), end: new Date(2022, 2, 9, 13), name: "Lunch" })
     const instance = makeInstance({ events: [standup, lunch] })
     render(<MonthView {...makeProps(instance, { rowLimit: 1 })} />)
 
-    const moreButton = screen.getByText("+1 more")
-    fireEvent.click(moreButton)
+    fireEvent.click(screen.getByRole("button", { name: "+1 more" }))
+    fireEvent.click(screen.getByRole("button", { name: "Wednesday, March 9" }))
 
-    expect(instance.setDate).toHaveBeenCalledTimes(1)
     const calledWith = (instance.setDate as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as Date
-    expect(calledWith.getFullYear()).toBe(day.getFullYear())
-    expect(calledWith.getMonth()).toBe(day.getMonth())
-    expect(calledWith.getDate()).toBe(day.getDate())
+    expect([calledWith.getFullYear(), calledWith.getMonth(), calledWith.getDate()]).toEqual([2022, 2, 9])
     expect(instance.setView).toHaveBeenCalledWith("day")
+    expect(screen.queryByRole("dialog")).toBeNull()
+  })
+
+  it("closes the day's card on Escape and gives the focus back to its dots", () => {
+    const standup = makeEvent({ start: new Date(2022, 2, 9, 9), end: new Date(2022, 2, 9, 10), name: "Standup" })
+    const lunch = makeEvent({ start: new Date(2022, 2, 9, 12), end: new Date(2022, 2, 9, 13), name: "Lunch" })
+    render(<MonthView {...makeProps(makeInstance({ events: [standup, lunch] }), { rowLimit: 1 })} />)
+
+    const more = screen.getByRole("button", { name: "+1 more" })
+    more.focus()
+    fireEvent.click(more)
+    expect(screen.getByRole("dialog")).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: "Escape" })
+    expect(screen.queryByRole("dialog")).toBeNull()
+    expect(more).toHaveFocus()
   })
 
   it("opens the editor when a chip is clicked", () => {

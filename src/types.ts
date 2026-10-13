@@ -177,8 +177,10 @@ export interface CalendarLabels {
   eventCount: string
   newEvent: string
   allDay: string
-  /** `{n}` is replaced with how many events did not fit. */
+  /** `{n}` is replaced with how many events did not fit — the name of a month day's overflow dots. */
   more: string
+  /** The hint on a month day card's date, which opens that day. */
+  openDay: string
   noEvents: string
   loading: string
   loadFailed: string

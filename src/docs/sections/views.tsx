@@ -19,7 +19,7 @@ function FiveViews() {
         rows={[
           ["day", "One day", "A time grid, with an all-day strip above it. Drag to create, move and resize."],
           ["week", "Seven days, five without weekends", "The same grid across the days, starting on weekStartsOn."],
-          ["month", "A six-week grid", "Whole-day events as bars across the cells; a timed event as a dot and a time; “+N more” past what fits."],
+          ["month", "A six-week grid", "Whole-day events as bars across the cells; a timed event as a tinted line with a dot and a time; past what fits, a dot per hidden event that opens the day's card."],
           ["year", "Twelve mini months", "Each day tinted by how many events touch it. Click a day to open it."],
           ["agenda", "The month, as a list", "One block per day that has events. Opens on today when the month holds it."],
         ]}

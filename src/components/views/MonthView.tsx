@@ -8,14 +8,17 @@ import type { CalendarEvent, CalendarLabels, EventDraft } from "../../types"
 import "../../styles/month.css"
 import { useSlotClass } from "../classesContext"
 import { useMediaQuery } from "../useMediaQuery"
+import { rectOf } from "./anchor"
 import type { CellAnchorRect } from "./MonthCell"
-import { MonthRow } from "./MonthRow"
+import { MonthRow, type MonthRowLimits, type OpenDay } from "./MonthRow"
 import { useMonthDrag } from "./useMonthDrag"
 
 /** Height, in px, of one packed event row inside a cell (20px chip + 2px gap) — must match `month.css`. */
 const SEGMENT_ROW_STEP_PX = 22
 /** Space, in px, reserved at the top of a cell for the day-number head — must match `month.css`. */
 const DAY_HEAD_HEIGHT_PX = 28
+/** The overflow dots' line under the event rows (`.cal-month-more`, in a grid row of its own). */
+const MORE_LINE_PX = SEGMENT_ROW_STEP_PX
 /** Used before the grid has been measured, or when `ResizeObserver` is unavailable. */
 const FALLBACK_MAX_ROWS = 3
 /** Below this width, `compact` defaults on when the caller does not pass it explicitly — matches month.css. */
@@ -47,7 +50,8 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
 }
 
 /**
- * Measures how many event rows fit in a month cell by watching the weeks
+ * Measures how many event rows fit in a month cell — and how many beside the
+ * overflow dots' line — by watching the weeks
  * container's height (all 6 rows share it equally, via `flex: 1`) and
  * recomputing on resize.
  *
@@ -55,8 +59,8 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
  * `rowLimit` override lets tests skip layout measurement entirely — both
  * fall back to a fixed row count instead.
  */
-function useMeasuredMaxRows(containerRef: RefObject<HTMLDivElement | null>, rowCount: number, override: number | undefined): number {
-  const [measured, setMeasured] = useState(FALLBACK_MAX_ROWS)
+function useMeasuredMaxRows(containerRef: RefObject<HTMLDivElement | null>, rowCount: number, override: number | undefined): MonthRowLimits {
+  const [measured, setMeasured] = useState<MonthRowLimits>({ maxRows: FALLBACK_MAX_ROWS, rowsBesideMore: FALLBACK_MAX_ROWS - 1 })
 
   useEffect(() => {
     if (override !== undefined) return
@@ -66,7 +70,10 @@ function useMeasuredMaxRows(containerRef: RefObject<HTMLDivElement | null>, rowC
     const updateMaxRows = (): void => {
       const rowHeight = container.clientHeight / rowCount
       const available = rowHeight - DAY_HEAD_HEIGHT_PX
-      setMeasured(Math.max(1, Math.floor(available / SEGMENT_ROW_STEP_PX)))
+      const maxRows = Math.max(1, Math.floor(available / SEGMENT_ROW_STEP_PX))
+      // A week that overflows keeps a line for its dots, or they fall under the row's edge and cannot be clicked.
+      const rowsBesideMore = Math.max(0, Math.floor((available - MORE_LINE_PX) / SEGMENT_ROW_STEP_PX))
+      setMeasured((current) => (current.maxRows === maxRows && current.rowsBesideMore === rowsBesideMore ? current : { maxRows, rowsBesideMore }))
     }
     updateMaxRows()
     const observer = new ResizeObserver(updateMaxRows)
@@ -74,13 +81,15 @@ function useMeasuredMaxRows(containerRef: RefObject<HTMLDivElement | null>, rowC
     return () => observer.disconnect()
   }, [containerRef, rowCount, override])
 
-  return override ?? measured
+  // A test's fixed limit is the rows shown beside the dots too: it measures nothing.
+  return override !== undefined ? { maxRows: override, rowsBesideMore: override } : measured
 }
 
 /**
  * The month grid: a header of weekday names, then 6 week rows filling the
  * available height, each with an ISO week-number cell and day cells
- * carrying event segments and a "+N more" overflow button.
+ * carrying event segments and, for a day that overflows, its dots and the
+ * card that lists the whole day.
  *
  * Drag-to-move lives in {@link useMonthDrag}; row layout and event chips
  * live in {@link MonthRow} so a multi-day span can render as one element
@@ -106,16 +115,25 @@ export function MonthView<TData = unknown>({
   const weekdayHeaders = weeks[0] ?? []
 
   const weeksRef = useRef<HTMLDivElement | null>(null)
-  const maxRows = useMeasuredMaxRows(weeksRef, weeks.length, rowLimit)
+  const { maxRows, rowsBesideMore } = useMeasuredMaxRows(weeksRef, weeks.length, rowLimit)
 
   const daysByKey = useMemo(() => new Map(instance.days.map((day) => [formatDateInput(day), day] as const)), [instance.days])
+
+  // One day card at a time. Kept with the days it was opened over: another month's grid shows none.
+  const [openDayState, setOpenDayState] = useState<{ days: Date[]; day: OpenDay } | null>(null)
+  const openDay = openDayState?.days === instance.days ? openDayState.day : null
+  const handleDayOpen = useCallback(
+    (dayKey: string, trigger: HTMLElement): void => setOpenDayState({ days: instance.days, day: { dayKey, trigger, anchor: rectOf(trigger) } }),
+    [instance.days],
+  )
+  const handleDayClose = useCallback((): void => setOpenDayState(null), [])
   const drag = useMonthDrag(instance, daysByKey)
 
   /**
    * Compact mode opens a day by clicking its cell, but `MonthRow`/`MonthCell`
    * (owned elsewhere) don't take a per-cell callback for that — so this
    * delegates from the one container this view does own. Event chips and the
-   * "+N more" button live in a sibling overlay, not inside `.cal-month-cell`,
+   * overflow dots live in a sibling overlay, not inside `.cal-month-cell`,
    * so `closest(".cal-month-cell")` only ever matches an actual cell click.
    */
   const handleWeeksClick = useCallback(
@@ -173,11 +191,16 @@ export function MonthView<TData = unknown>({
             days={weekDays}
             columns={columns}
             maxRows={maxRows}
+            rowsBesideMore={rowsBesideMore}
+            compact={compact}
             dropDayKey={drag.dragState?.overDayKey ?? null}
             drag={drag}
             onEventOpen={onEventOpen}
             onEventHover={onEventHover}
             onCreateRequest={handleCreateRequest}
+            openDay={openDay}
+            onDayOpen={handleDayOpen}
+            onDayClose={handleDayClose}
           />
         ))}
       </div>

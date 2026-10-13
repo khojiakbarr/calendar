@@ -483,7 +483,7 @@ events render at equal width.
 `layoutSegments(events, days, "spans" | "all")` and `limitRows(segments, maxRows, columns)`
 — lay out all-day and multi-day events as bars across a row of day columns (the all-day
 strip, or a month cell's stack), first-fit by row, then split what fits in `maxRows` from
-what to report as a "+N more" count per column.
+what to report as hidden per column (a month day's overflow dots and its card).
 
 ---
 
@@ -580,6 +580,10 @@ Returns a `CalendarInstance<TData>` — see below.
 - The settings menu and an in-progress drag both close on `Escape` too.
 - Month, year and the mini month picker use `role="grid"`/`"row"`/`"gridcell"` with
   `aria-label`s, matching what a screen reader expects from a date grid.
+- A month day's overflow dots are one button named with the `more` label ("+6 more"), with
+  `aria-haspopup="dialog"` and `aria-expanded`. Its card is a dialog named by its date: the
+  focus moves into it, ↑/↓ walk its events, `Escape` or a click outside closes it and gives
+  the focus back to the dots.
 - `prefers-reduced-motion: reduce` turns off every transition and animation under
   `.cal-root`, including the loading progress bar.
 - **Drag gestures have no keyboard equivalent yet.** Creating, moving and resizing an event

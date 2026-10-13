@@ -1,0 +1,133 @@
+@layer calendar {
+  /*
+   * A month day's card (DayEventsPopover): the date, which opens the day, and
+   * every event of the day as the grid draws it — its tint, a span's bar, a
+   * timed event's dot — with its whole name. Bars are inset shadows, not
+   * borders, so a host's own border colour cannot grey them.
+   */
+
+  .cal-popover.cal-daylist {
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .cal-daylist-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .cal-daylist-header .cal-icon-btn {
+    flex: none;
+    width: 28px;
+    height: 28px;
+  }
+
+  .cal-daylist-title {
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .cal-daylist-date {
+    margin-left: -6px;
+    padding: 2px 6px;
+    border: none;
+    border-radius: var(--cal-radius-sm);
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  /* Intl writes some weekdays in lower case ("пятница"); a title starts with a capital. */
+  .cal-daylist-date::first-letter {
+    text-transform: uppercase;
+  }
+
+  .cal-daylist-date:hover {
+    background-color: var(--cal-hover-bg);
+  }
+
+  .cal-daylist-date:focus-visible,
+  .cal-daylist-event:focus-visible {
+    outline: 2px solid var(--cal-focus-ring);
+    outline-offset: 1px;
+  }
+
+  .cal-daylist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: min(360px, 60vh);
+    margin: 0;
+    padding: 2px;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  .cal-daylist-event {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+    width: 100%;
+    min-height: 24px;
+    padding: 3px 8px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--cal-event-color) var(--cal-chip-mix), var(--cal-bg));
+    color: var(--cal-event-fg);
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+  }
+
+  .cal-daylist-event:hover {
+    background-color: color-mix(in srgb, var(--cal-event-color) var(--cal-chip-mix-hover), var(--cal-bg));
+  }
+
+  /* A span as the grid draws it: a stronger tint and a bar down its start. */
+  .cal-daylist-span {
+    padding-left: 10px;
+    background-color: color-mix(in srgb, var(--cal-event-color) 35%, var(--cal-bg));
+    box-shadow: inset 3px 0 0 var(--cal-event-color);
+  }
+
+  .cal-daylist-span:hover {
+    background-color: color-mix(in srgb, var(--cal-event-color) 45%, var(--cal-bg));
+  }
+
+  .cal-daylist-time {
+    flex: none;
+    color: color-mix(in srgb, var(--cal-fg) 70%, transparent);
+  }
+
+  .cal-daylist-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  /* A span over several days says which, on a line of its own. */
+  .cal-daylist-dates {
+    flex-basis: 100%;
+    font-size: 11px;
+    color: color-mix(in srgb, var(--cal-fg) 70%, transparent);
+  }
+
+  .cal-daylist-empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--cal-muted-fg);
+  }
+}

@@ -121,6 +121,13 @@ export function formatFullDate(d: Date, locale: string): string {
   return new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(d)
 }
 
+/** `d` as a weekday and a day of a month, with no year — a day card's title, e.g. "Friday, October 9". */
+export function formatWeekdayDayMonth(d: Date, locale: string): string {
+  const words = fallbackWords(locale)
+  if (words) return `${words.weekdays[d.getDay()] ?? ""}, ${d.getDate()}-${(words.months[d.getMonth()] ?? "").toLowerCase()}`
+  return new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric" }).format(d)
+}
+
 /** `d`'s local date as `YYYY-MM-DD`, for an `<input type="date">` value. */
 export function formatDateInput(d: Date): string {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`

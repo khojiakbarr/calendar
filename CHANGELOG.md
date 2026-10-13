@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0 — 2026-10-13
+
+- A month day's overflow is no longer the words "+N more" but a dot in the colour of each hidden event — four at
+  most, two in a phone's narrow cell, then "+N" for the rest — on a faint pill, so what did not fit can be told apart
+  before it is opened: a red dot is something late, a ring a plan. It is still one button, named with the `more`
+  label and the whole count.
+- A week that overflows keeps a line for those dots. "+N more" used to sit under the last row that fitted, and where
+  the cell had less than its height left it fell past the row's edge — half cut, or (on a phone) under the next week
+  and impossible to press.
+- The dots open the day's card over its cell instead of switching to the day view: every event of the day — the ones
+  shown in the cell too — in the cell's order, each drawn as in the grid (its tint, a span's bar, a timed event's dot
+  and time, a plan's outline) with its whole name, and a span over several days with its dates. Picking one closes
+  the card and opens the event as a chip does (`onEventClick`, or the editor). The date in its title opens the day
+  view, where "+N more" used to go; ↑/↓ walk the events, `Escape` or a click outside closes it.
+- New label `openDay` ("Open day"), the hint on the card's date.
+
 ## 0.2.9 — 2026-10-09
 
 - A month's timed event wears its colour, as the week's chips do: a tint of it (`--cal-chip-mix`, stronger under the

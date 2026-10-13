@@ -19,6 +19,7 @@ export const defaultLabels: CalendarLabels = {
   newEvent: "New event",
   allDay: "All day",
   more: "+{n} more",
+  openDay: "Open day",
   noEvents: "No events",
   loading: "Loading",
   loadFailed: "Could not load events",

@@ -1,15 +1,18 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react"
 import { classNames } from "../../core/classNames"
 import { isoWeek, overlaps } from "../../core/date"
-import { formatDateInput, formatDayMonth, formatTime } from "../../core/format"
-import { fill } from "../../core/labels"
+import { formatDateInput, formatTime } from "../../core/format"
 import { eventLookClasses } from "../../core/looks"
 import { layoutSegments, limitRows, type Segment } from "../../core/spans"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
 import { useSlotClass } from "../classesContext"
+import type { AnchorRect } from "../Popover"
 import { useIsLit } from "../litGroupContext"
+import { DayEventsPopover } from "./DayEventsPopover"
 import { MonthCell, type CellAnchorRect } from "./MonthCell"
+import { MonthMore } from "./MonthMore"
+import { describeSegment, segmentsOfColumn } from "./monthSegment"
 import type { UseMonthDragResult } from "./useMonthDrag"
 
 /** One week row: the days it covers and where it falls in the 6-row grid. */
@@ -19,19 +22,32 @@ export interface MonthRowProps<TData = unknown> {
   days: Date[]
   columns: number
   maxRows: number
+  /** The rows shown in a week that overflows, the dots' line under them. */
+  rowsBesideMore: number
+  /** The ≤640px month: fewer overflow dots fit a cell. */
+  compact: boolean
   dropDayKey: string | null
   drag: UseMonthDragResult<TData>
   onEventOpen: (event: CalendarEvent<TData>, anchor: HTMLElement) => void
   onEventHover: (event: CalendarEvent<TData> | null, anchor: HTMLElement | null) => void
   onCreateRequest: (day: Date, anchor: CellAnchorRect) => void
+  /** The month's open day card, if any — drawn by the row that holds its day. */
+  openDay: OpenDay | null
+  onDayOpen: (dayKey: string, trigger: HTMLElement) => void
+  onDayClose: () => void
 }
 
-/** aria-label for a chip: the event name plus its start/end, phrased as a time for a timed event, a date for a span. */
-function describeEvent<TData>(segment: Segment<TData>, labels: CalendarLabels, locale: string): string {
-  const { event, kind } = segment
-  const start = kind === "timed" ? formatTime(event.start, locale) : formatDayMonth(event.start, locale)
-  const end = kind === "timed" ? formatTime(event.end, locale) : formatDayMonth(event.end, locale)
-  return fill(labels.eventDescription, { name: event.name || labels.untitled, start, end })
+/** How many event rows a month cell holds: all of them, or as many as leave room for the overflow dots. */
+export interface MonthRowLimits {
+  maxRows: number
+  rowsBesideMore: number
+}
+
+/** A month day whose "+N" card is open: its key, and the button that opened it — the card's anchor and an opened event's. */
+export interface OpenDay {
+  dayKey: string
+  trigger: HTMLElement
+  anchor: AnchorRect
 }
 
 /** One event chip: a solid pill for a span, a coloured dot + time + name line for a single-day timed event. */
@@ -85,7 +101,7 @@ function EventChip<TData>({
       data-event-id={event.id}
       data-group={event.groupId}
       tabIndex={0}
-      aria-label={describeEvent(segment, labels, locale)}
+      aria-label={describeSegment(segment, labels, locale)}
       onClick={openFromPointer}
       // The first click already opened; a double-click must not open again.
       onDoubleClick={(mouseEvent) => mouseEvent.stopPropagation()}
@@ -101,38 +117,12 @@ function EventChip<TData>({
   )
 }
 
-/** The "+N more" affordance for one day's hidden overflow, placed just under the last visible row. */
-function MoreButton<TData>({
-  day,
-  count,
-  col,
-  row,
-  labels,
-  instance,
-}: {
-  day: Date
-  count: number
-  col: number
-  row: number
-  labels: CalendarLabels
-  instance: CalendarInstance<TData>
-}) {
-  const handleClick = (): void => {
-    instance.setDate(day)
-    instance.setView("day")
-  }
-  return (
-    <button type="button" className="cal-month-more" style={{ gridColumn: col + 1, gridRow: row + 1 }} onClick={handleClick}>
-      {fill(labels.more, { n: count })}
-    </button>
-  )
-}
-
 /**
  * Renders one week: the ISO week-number cell, the day-cell backgrounds, and
  * an overlay grid stacking that week's event segments — spans first, then
- * single-day timed lines — with a "+N more" button per day that overflows
- * `maxRows`.
+ * single-day timed lines — with the overflow dots of each day past what fits
+ * ({@link MonthMore}, on a line kept for them) and, when one is opened, that day's card
+ * ({@link DayEventsPopover}).
  */
 export function MonthRow<TData = unknown>({
   instance,
@@ -140,11 +130,16 @@ export function MonthRow<TData = unknown>({
   days,
   columns,
   maxRows,
+  rowsBesideMore,
+  compact,
   dropDayKey,
   drag,
   onEventOpen,
   onEventHover,
   onCreateRequest,
+  openDay,
+  onDayOpen,
+  onDayClose,
 }: MonthRowProps<TData>) {
   const firstDay = days[0]
   const lastDay = days[days.length - 1]
@@ -153,8 +148,11 @@ export function MonthRow<TData = unknown>({
   const rowRange = { start: firstDay, end: new Date(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate() + 1) }
   const rowEvents = instance.events.filter((event) => overlaps({ start: event.start, end: event.end }, rowRange))
   const segments = layoutSegments(rowEvents, days, "all")
-  const { visible, overflow } = limitRows(segments, maxRows, columns)
+  const rowsShown = segments.some((segment) => segment.row >= maxRows) ? rowsBesideMore : maxRows
+  const { visible, overflow } = limitRows(segments, rowsShown, columns)
   const gridColumns = { gridTemplateColumns: `repeat(${columns}, 1fr)` }
+  // Read live from this row's segments, so an event changed while the card is open is drawn as it is now.
+  const openCol = openDay ? days.findIndex((day) => formatDateInput(day) === openDay.dayKey) : -1
 
   return (
     <div className="cal-month-row" role="row">
@@ -173,11 +171,37 @@ export function MonthRow<TData = unknown>({
           {visible.map((segment) => (
             <EventChip key={segment.event.id} segment={segment} instance={instance} labels={labels} drag={drag} onEventOpen={onEventOpen} onEventHover={onEventHover} />
           ))}
-          {overflow.map((count, col) =>
-            count > 0 ? <MoreButton key={col} day={days[col] ?? firstDay} count={count} col={col} row={maxRows} labels={labels} instance={instance} /> : null,
-          )}
+          {overflow.map((count, col) => {
+            if (count === 0) return null
+            const dayKey = formatDateInput(days[col] ?? firstDay)
+            const hidden = segmentsOfColumn(segments, col).filter((segment) => segment.row >= rowsShown)
+            return (
+              <MonthMore
+                key={dayKey}
+                hidden={hidden}
+                col={col}
+                row={rowsShown}
+                isOpen={openDay?.dayKey === dayKey}
+                compact={compact}
+                labels={labels}
+                instance={instance}
+                onOpen={(trigger) => onDayOpen(dayKey, trigger)}
+              />
+            )
+          })}
         </div>
       </div>
+      {openCol >= 0 && openDay ? (
+        <DayEventsPopover
+          day={days[openCol] ?? firstDay}
+          segments={segmentsOfColumn(segments, openCol)}
+          anchor={openDay.anchor}
+          labels={labels}
+          instance={instance}
+          onClose={onDayClose}
+          onEventOpen={(event) => onEventOpen(event, openDay.trigger)}
+        />
+      ) : null}
     </div>
   )
 }
