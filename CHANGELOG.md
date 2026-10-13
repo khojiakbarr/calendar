@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 — 2026-10-13
+
+- `useCalendar` takes the view and the day from the host: `view` and `date` win over the stored view and the
+  calendar's own day, and `onViewChange` / `onDateChange` are told of every switch, step, «Today» and day picked — so
+  a page can keep both in its address, and a reload or a link opens the same month. A switch is still stored. A held
+  date parsed afresh on every render (from an address) is the same day to the loader: nothing is asked twice.
+
 ## 0.3.0 — 2026-10-13
 
 - A month day's overflow is no longer the words "+N more" but a dot in the colour of each hidden event — four at

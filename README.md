@@ -357,6 +357,23 @@ stored: the anchor date. Reopening a calendar on the day someone last looked at,
 is a surprise, not a convenience — every visit starts on today unless `initialDate` says
 otherwise.
 
+A page that wants the view and the day in its address — so a reload or a link opens the same
+month — holds them itself: `view` and `date` win over the stored view and the calendar's own
+day, and `onViewChange` / `onDateChange` tell it of every switch and step, which it writes
+back. A switch is still stored, so the address without a `view` opens on the last one used.
+
+```tsx
+const [params, setParams] = useSearchParams()
+const calendar = useCalendar({
+  id: "clinic",
+  source,
+  view: readView(params),          // undefined → the stored view
+  onViewChange: (view) => setParams((p) => ({ ...Object.fromEntries(p), view })),
+  date: readDay(params),           // undefined → today
+  onDateChange: (date) => setParams((p) => ({ ...Object.fromEntries(p), date: toDay(date) })),
+})
+```
+
 ---
 
 ## Styling
@@ -498,6 +515,10 @@ what to report as hidden per column (a month day's overflow dots and its card).
 | `resources` | `CalendarResource[]` | `[]` | |
 | `initialDate` | `Date` | today | |
 | `initialView` | `CalendarView` | `"week"` | Ignored once a user has a stored view. |
+| `view` | `CalendarView` | | Held by the host (an address); wins over the stored view. |
+| `onViewChange` | `(view) => void` | | Every switch; a host holding `view` writes it back. |
+| `date` | `Date` | | Held by the host; wins over the calendar's own day. |
+| `onDateChange` | `(date) => void` | | Every step, «Today» and day picked; a host holding `date` writes it back. |
 | `storage` | `PreferenceStorage` | none | Where preferences live. |
 | `initialPreferences` | `Partial<CalendarPreferences>` | `{}` | Applied on a user's first visit; loses to anything stored. |
 | `features` | `CalendarFeatureFlags` | all on | Turn off `create`, `move`, `resize`, `edit` or `remove`; each still needs its source method too. |

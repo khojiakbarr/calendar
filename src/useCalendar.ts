@@ -46,6 +46,18 @@ export interface UseCalendarOptions<TData = unknown> {
   initialDate?: Date
   /** The view first shown, unless the user already stored one. */
   initialView?: CalendarView
+  /**
+   * The view shown, held by the host — say, in the page's address. Given, it
+   * wins over the stored one; a switch is still stored, and told through
+   * `onViewChange`, which a host holding the view must answer.
+   */
+  view?: CalendarView | undefined
+  /** Told every switch of view, held or not. */
+  onViewChange?: ((view: CalendarView) => void) | undefined
+  /** The day shown, held by the host — say, in the page's address. Given, it wins over the calendar's own. */
+  date?: Date | undefined
+  /** Told every move of the day shown — a step, «Today», a day picked — which a host holding the date must answer. */
+  onDateChange?: ((date: Date) => void) | undefined
   /** Where preferences live between visits. Defaults to not persisting. */
   storage?: PreferenceStorage
   /** Preferences applied the first time a user opens this calendar. */
@@ -101,6 +113,10 @@ export function useCalendar<TData = unknown>({
   resources = NO_RESOURCES,
   initialDate,
   initialView,
+  view: heldView,
+  onViewChange,
+  date: heldDate,
+  onDateChange,
   storage,
   initialPreferences,
   features,
@@ -137,15 +153,28 @@ export function useCalendar<TData = unknown>({
   )
 
   const resourceIds = useMemo(() => resources.map((resource) => resource.id), [resources])
-  const { preferences, isCustomised, setView, setShowWeekends, setResourceHidden, setResourcesHidden, resetPreferences } =
+  const { preferences, isCustomised, setView: storeView, setShowWeekends, setResourceHidden, setResourcesHidden, resetPreferences } =
     usePreferences({ id, storage, initialPreferences, initialView, resourceIds })
-  const { view, showWeekends, hiddenResourceIds } = preferences
+  const { showWeekends, hiddenResourceIds } = preferences
+  const view = heldView ?? preferences.view
+  // A host's inline handler is a new function each render; the action keeps one identity.
+  const onViewChangeRef = useRef(onViewChange)
+  onViewChangeRef.current = onViewChange
+  const setView = useCallback(
+    (next: CalendarView) => {
+      storeView(next)
+      onViewChangeRef.current?.(next)
+    },
+    [storeView],
+  )
 
   const { date, range, days, window, setDate, goToday, goNext, goPrevious } = useCalendarView({
     view,
     weekStartsOn,
     showWeekends,
     initialDate,
+    date: heldDate,
+    onDateChange,
     now: stableNow,
   })
 

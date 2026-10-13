@@ -531,6 +531,62 @@ describe("preferences", () => {
   })
 })
 
+describe("a view and a day held by the host", () => {
+  it("shows the held view over the stored one, still stores a switch and tells the host", () => {
+    const { source } = fakeSource()
+    const onViewChange = vi.fn()
+    const storage: PreferenceStorage = { load: () => ({ view: "agenda" }), save: vi.fn(), clear: vi.fn() }
+    const { result, rerender } = renderHook(
+      ({ view }: { view: "day" | "month" }) => useCalendar({ id: "test", source, storage, initialDate: ANCHOR, view, onViewChange }),
+      { initialProps: { view: "day" } },
+    )
+    expect(result.current.view).toBe("day")
+
+    act(() => result.current.setView("month"))
+    expect(onViewChange).toHaveBeenCalledWith("month")
+    // Until the host answers, the held view stands.
+    expect(result.current.view).toBe("day")
+
+    rerender({ view: "month" })
+    expect(result.current.view).toBe("month")
+  })
+
+  it("draws the held day, steps from it and tells the host, asking once for a day parsed afresh each render", async () => {
+    const { source, loads } = fakeSource()
+    const onDateChange = vi.fn()
+    // A host reading its address builds a new Date for the same day on every render.
+    const { result, rerender } = renderHook(
+      ({ day }: { day: number }) => useCalendar({ id: "test", source, initialView: "day", date: new Date(2022, 2, day), onDateChange }),
+      { initialProps: { day: 20 } },
+    )
+    await act(async () => nth(loads, 0).deferred.resolve([]))
+    rerender({ day: 20 })
+    rerender({ day: 20 })
+    expect(loads).toHaveLength(1)
+    expect(result.current.days.map((day) => day.getDate())).toEqual([20])
+
+    act(() => result.current.goNext())
+    expect(nth(onDateChange.mock.calls, 0)[0]).toEqual(new Date(2022, 2, 21))
+
+    rerender({ day: 21 })
+    expect(result.current.days.map((day) => day.getDate())).toEqual([21])
+  })
+
+  it("tells the host of every move while it holds nothing", () => {
+    const { source } = fakeSource()
+    const onDateChange = vi.fn()
+    const onViewChange = vi.fn()
+    const { result } = render({ source, initialView: "day", onDateChange, onViewChange })
+
+    act(() => result.current.goPrevious())
+    act(() => result.current.setView("week"))
+
+    expect(onDateChange).toHaveBeenCalledWith(new Date(2022, 2, 14))
+    expect(onViewChange).toHaveBeenCalledWith("week")
+    expect(result.current.view).toBe("week")
+  })
+})
+
 describe("settings", () => {
   it("fills in the documented defaults", () => {
     const { source } = fakeSource()
