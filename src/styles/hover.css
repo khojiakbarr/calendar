@@ -26,7 +26,11 @@
     left: 0;
     width: calc(100% - 2px);
     height: auto;
-    min-height: var(--cal-chip-height, auto);
+    /*
+     * Never shorter than the chip it was: wider, its words need fewer lines, and `height: auto` alone shrank it —
+     * while the inline 18px floor beat this rule, a 1-hour chip fell to its text's 30px under the pointer.
+     */
+    min-height: max(var(--cal-chip-height, 0px), 18px);
     box-shadow: var(--cal-hover-shadow);
     outline: none;
   }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.1 — 2026-10-13
+
+- A timed event under the pointer keeps its height. Hover widens it to the whole column and lets its words wrap, and
+  `height: auto` with a floor of its own height was meant to grow it only when they need more — but the 18px floor was
+  written inline and beat the floor, so a one-hour event shrank to its text's 30px. The 18px is in the stylesheet now.
+- A month week fills its height: the overflow dots' line is counted at its own 14px (+2px padding), not as one more
+  22px event row, and drawn 14px tall. A 110px week shows three events and the dots, where it showed two and left an
+  empty band. `monthRowLimits(rowHeight)` is the arithmetic, tested on its own.
+
 ## 0.5.0 — 2026-10-13
 
 - `useCalendar({ filter })`: the host's own filter over what is loaded — by a partner, a board, a status, anything the

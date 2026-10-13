@@ -19,9 +19,6 @@ const MINUTES_PER_HOUR = 60
 /** Gap between side-by-side chips, so touching events stay visually separate. */
 const COLUMN_GAP_PX = 2
 
-/** Shortest a chip may be drawn, so a 5-minute event is still clickable. */
-const MIN_CHIP_HEIGHT_PX = 18
-
 /**
  * Inline styles that may also set `--cal-*` custom properties.
  *
@@ -137,7 +134,6 @@ export function blockStyle(options: {
   const widthPercent = 100 / columns
   return {
     top: `calc(var(--cal-hour-height) * ${(startMinutes - dayStartMinutes) / MINUTES_PER_HOUR})`,
-    minHeight: `${MIN_CHIP_HEIGHT_PX}px`,
     "--cal-chip-height": `calc(var(--cal-hour-height) * ${(endMinutes - startMinutes) / MINUTES_PER_HOUR})`,
     "--cal-chip-left": `${column * widthPercent}%`,
     "--cal-chip-width": `calc(${widthPercent}% - ${COLUMN_GAP_PX}px)`,

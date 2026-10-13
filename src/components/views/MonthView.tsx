@@ -17,8 +17,12 @@ import { useMonthDrag } from "./useMonthDrag"
 const SEGMENT_ROW_STEP_PX = 22
 /** Space, in px, reserved at the top of a cell for the day-number head — must match `month.css`. */
 const DAY_HEAD_HEIGHT_PX = 28
-/** The overflow dots' line under the event rows (`.cal-month-more`, in a grid row of its own). */
-const MORE_LINE_PX = SEGMENT_ROW_STEP_PX
+/**
+ * The overflow dots' line under the event rows (`.cal-month-more`, 14px, in a grid row of its own) with the grid's
+ * 2px bottom padding — must match `month.css`. Counted at its own height, not as one more 22px event row: a 110px
+ * week fits three events and the dots, where it showed two and left 16px empty.
+ */
+const MORE_LINE_PX = 14 + 2
 /** Used before the grid has been measured, or when `ResizeObserver` is unavailable. */
 const FALLBACK_MAX_ROWS = 3
 /** Below this width, `compact` defaults on when the caller does not pass it explicitly — matches month.css. */
@@ -50,6 +54,21 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
 }
 
 /**
+ * How many event rows a week of this height holds — all of them, or beside the overflow dots' line. A week that
+ * overflows keeps a line for its dots, or they fall under the row's edge and cannot be clicked.
+ *
+ * @example
+ * monthRowLimits(110) // { maxRows: 3, rowsBesideMore: 3 }
+ */
+export function monthRowLimits(rowHeight: number): MonthRowLimits {
+  const available = rowHeight - DAY_HEAD_HEIGHT_PX
+  return {
+    maxRows: Math.max(1, Math.floor(available / SEGMENT_ROW_STEP_PX)),
+    rowsBesideMore: Math.max(0, Math.floor((available - MORE_LINE_PX) / SEGMENT_ROW_STEP_PX)),
+  }
+}
+
+/**
  * Measures how many event rows fit in a month cell — and how many beside the
  * overflow dots' line — by watching the weeks
  * container's height (all 6 rows share it equally, via `flex: 1`) and
@@ -68,11 +87,7 @@ function useMeasuredMaxRows(containerRef: RefObject<HTMLDivElement | null>, rowC
     if (!container || rowCount === 0 || typeof ResizeObserver === "undefined") return
 
     const updateMaxRows = (): void => {
-      const rowHeight = container.clientHeight / rowCount
-      const available = rowHeight - DAY_HEAD_HEIGHT_PX
-      const maxRows = Math.max(1, Math.floor(available / SEGMENT_ROW_STEP_PX))
-      // A week that overflows keeps a line for its dots, or they fall under the row's edge and cannot be clicked.
-      const rowsBesideMore = Math.max(0, Math.floor((available - MORE_LINE_PX) / SEGMENT_ROW_STEP_PX))
+      const { maxRows, rowsBesideMore } = monthRowLimits(container.clientHeight / rowCount)
       setMeasured((current) => (current.maxRows === maxRows && current.rowsBesideMore === rowsBesideMore ? current : { maxRows, rowsBesideMore }))
     }
     updateMaxRows()
