@@ -58,6 +58,12 @@ export interface UseCalendarOptions<TData = unknown> {
   date?: Date | undefined
   /** Told every move of the day shown — a step, «Today», a day picked — which a host holding the date must answer. */
   onDateChange?: ((date: Date) => void) | undefined
+  /**
+   * The host's own filter over what is loaded: an event it answers `false` for
+   * is not drawn, in any view. Nothing is asked again when it changes — keep it
+   * one function per set of choices (`useMemo`), as every new one redraws.
+   */
+  filter?: ((event: CalendarEvent<TData>) => boolean) | undefined
   /** Where preferences live between visits. Defaults to not persisting. */
   storage?: PreferenceStorage
   /** Preferences applied the first time a user opens this calendar. */
@@ -117,6 +123,7 @@ export function useCalendar<TData = unknown>({
   onViewChange,
   date: heldDate,
   onDateChange,
+  filter,
   storage,
   initialPreferences,
   features,
@@ -206,9 +213,10 @@ export function useCalendar<TData = unknown>({
     const needle = filterText.trim().toLowerCase()
     return eventsInRange(store, range).filter((event) => {
       if (event.resourceId !== undefined && hidden.has(event.resourceId)) return false
+      if (filter && !filter(event)) return false
       return needle === "" || event.name.toLowerCase().includes(needle)
     })
-  }, [store, range, hiddenResourceIds, filterText])
+  }, [store, range, hiddenResourceIds, filterText, filter])
 
   // Capabilities as primitives: the source itself is usually an inline object,
   // and depending on its identity would rebuild the flags on every host render.

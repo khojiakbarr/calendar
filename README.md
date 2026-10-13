@@ -519,6 +519,7 @@ what to report as hidden per column (a month day's overflow dots and its card).
 | `onViewChange` | `(view) => void` | | Every switch; a host holding `view` writes it back. |
 | `date` | `Date` | | Held by the host; wins over the calendar's own day. |
 | `onDateChange` | `(date) => void` | | Every step, «Today» and day picked; a host holding `date` writes it back. |
+| `filter` | `(event) => boolean` | | The host's own filter over what is loaded; nothing is asked again when it changes. |
 | `storage` | `PreferenceStorage` | none | Where preferences live. |
 | `initialPreferences` | `Partial<CalendarPreferences>` | `{}` | Applied on a user's first visit; loses to anything stored. |
 | `features` | `CalendarFeatureFlags` | all on | Turn off `create`, `move`, `resize`, `edit` or `remove`; each still needs its source method too. |

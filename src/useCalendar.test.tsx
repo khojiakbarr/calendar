@@ -587,6 +587,25 @@ describe("a view and a day held by the host", () => {
   })
 })
 
+describe("a host's own filter", () => {
+  it("draws only what the filter keeps, without asking the source again when it changes", async () => {
+    const { source, loads } = fakeSource()
+    const breakfast = eventAt("a", "Breakfast", 15)
+    const lunch = eventAt("b", "Lunch", 15)
+    const { result, rerender } = renderHook(
+      ({ keep }: { keep: string | null }) =>
+        useCalendar({ id: "test", source, initialDate: ANCHOR, initialView: "week", filter: keep === null ? undefined : (event) => event.id === keep }),
+      { initialProps: { keep: null as string | null } },
+    )
+    await act(async () => nth(loads, 0).deferred.resolve([breakfast, lunch]))
+    expect(result.current.events.map((event) => event.id)).toEqual(["a", "b"])
+
+    rerender({ keep: "b" })
+    expect(result.current.events.map((event) => event.id)).toEqual(["b"])
+    expect(loads).toHaveLength(1)
+  })
+})
+
 describe("settings", () => {
   it("fills in the documented defaults", () => {
     const { source } = fakeSource()

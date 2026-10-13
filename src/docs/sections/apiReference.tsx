@@ -18,6 +18,7 @@ function Options() {
         ["onViewChange", code("(view) => void"), "—", "Every switch of view; a host holding view writes it back."],
         ["date", code("Date"), "—", "Held by the host; wins over the calendar's own day."],
         ["onDateChange", code("(date) => void"), "—", "Every step, Today and day picked; a host holding date writes it back."],
+        ["filter", code("(event) => boolean"), "—", "The host's own filter over what is loaded; nothing is asked again when it changes."],
         ["storage", code("PreferenceStorage"), "none", "Where preferences live between visits."],
         ["initialPreferences", code("Partial<CalendarPreferences>"), code("{}"), "Applied on a first visit; loses to anything stored."],
         ["features", code("CalendarFeatureFlags"), "all on", "Turn off create, move, resize, edit or remove. Each still needs its source method."],

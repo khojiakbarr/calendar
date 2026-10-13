@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 — 2026-10-13
+
+- `useCalendar({ filter })`: the host's own filter over what is loaded — by a partner, a board, a status, anything the
+  events carry. An event it answers `false` for is not drawn, in any view; changing it asks the source nothing.
+
 ## 0.4.0 — 2026-10-13
 
 - `useCalendar` takes the view and the day from the host: `view` and `date` win over the stored view and the
