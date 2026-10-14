@@ -19,20 +19,23 @@ export interface MonthMoreProps<TData = unknown> {
   labels: CalendarLabels
   instance: CalendarInstance<TData>
   onOpen: (anchor: HTMLElement) => void
+  /** A placement class beside `cal-month-more`: the time grid's all-day strip passes `cal-allday-more`. */
+  className?: string
 }
 
 /**
  * A day's overflow: a dot in the colour of each hidden event — four at most,
  * two on a phone — then "+N" for the rest, so what did not fit can be told
  * apart before it is opened: a red dot is something late, a ring a plan. A
- * click opens the day's card ({@link DayEventsPopover}). Its name is still the
+ * click opens the day's card ({@link DayEventsPopover}). A month cell's and the
+ * time grid's all-day strip's alike. Its name is still the
  * `more` label with the whole count, so a screen reader hears "+6 more", not
  * the dots.
  *
  * @example
  * <MonthMore hidden={hidden} col={2} row={maxRows} isOpen={false} compact={false} labels={labels} instance={instance} onOpen={open} />
  */
-export function MonthMore<TData = unknown>({ hidden, col, row, isOpen, compact, labels, instance, onOpen }: MonthMoreProps<TData>) {
+export function MonthMore<TData = unknown>({ hidden, col, row, isOpen, compact, labels, instance, onOpen, className }: MonthMoreProps<TData>) {
   const dots = hidden.slice(0, compact ? MORE_DOTS.compact : MORE_DOTS.wide)
   const rest = hidden.length - dots.length
 
@@ -45,7 +48,7 @@ export function MonthMore<TData = unknown>({ hidden, col, row, isOpen, compact, 
   return (
     <button
       type="button"
-      className="cal-month-more"
+      className={classNames("cal-month-more", className)}
       style={{ gridColumn: col + 1, gridRow: row + 1 }}
       aria-label={fill(labels.more, { n: hidden.length })}
       aria-haspopup="dialog"

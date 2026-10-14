@@ -147,23 +147,10 @@
     clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
   }
 
-  .cal-allday-more {
+  /* A day's overflow in the all-day strip is the month's dots (MonthMore, month.css), centred in its row. */
+  .cal-month-more.cal-allday-more {
     align-self: center;
     margin: 0 2px;
-    padding: 0 4px;
-    border: none;
-    border-radius: var(--cal-radius-sm);
-    background-color: transparent;
-    color: var(--cal-muted-fg);
-    font: inherit;
-    font-size: 11px;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .cal-allday-more:hover {
-    background-color: var(--cal-hover-bg);
-    color: var(--cal-fg);
   }
 
   /* --- Hour grid ---------------------------------------------------------- */

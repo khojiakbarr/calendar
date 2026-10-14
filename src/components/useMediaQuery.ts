@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react"
 
 /**
+ * A phone's width: the month turns compact below it (matches `month.css`) and an overflow shows fewer dots — the
+ * month's and the all-day strip's alike.
+ */
+export const COMPACT_QUERY = "(max-width: 640px)"
+
+/**
  * Whether `query` currently matches, or `false` when `matchMedia` is not
  * available at all (server-side rendering, or a test environment that does
  * not implement it) — the safe default is "not narrow", i.e. a modal rather

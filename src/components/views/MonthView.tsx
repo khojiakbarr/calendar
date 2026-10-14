@@ -7,11 +7,11 @@ import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels, EventDraft } from "../../types"
 import "../../styles/month.css"
 import { useSlotClass } from "../classesContext"
-import { useMediaQuery } from "../useMediaQuery"
-import { rectOf } from "./anchor"
+import { COMPACT_QUERY, useMediaQuery } from "../useMediaQuery"
 import type { CellAnchorRect } from "./MonthCell"
-import { MonthRow, type MonthRowLimits, type OpenDay } from "./MonthRow"
+import { MonthRow, type MonthRowLimits } from "./MonthRow"
 import { useMonthDrag } from "./useMonthDrag"
+import { useOpenDay } from "./useOpenDay"
 
 /** Height, in px, of one packed event row inside a cell (20px chip + 2px gap) — must match `month.css`. */
 const SEGMENT_ROW_STEP_PX = 22
@@ -25,8 +25,6 @@ const DAY_HEAD_HEIGHT_PX = 28
 const MORE_LINE_PX = 14 + 2
 /** Used before the grid has been measured, or when `ResizeObserver` is unavailable. */
 const FALLBACK_MAX_ROWS = 3
-/** Below this width, `compact` defaults on when the caller does not pass it explicitly — matches month.css. */
-const COMPACT_QUERY = "(max-width: 640px)"
 
 export interface MonthViewProps<TData = unknown> {
   instance: CalendarInstance<TData>
@@ -135,13 +133,7 @@ export function MonthView<TData = unknown>({
   const daysByKey = useMemo(() => new Map(instance.days.map((day) => [formatDateInput(day), day] as const)), [instance.days])
 
   // One day card at a time. Kept with the days it was opened over: another month's grid shows none.
-  const [openDayState, setOpenDayState] = useState<{ days: Date[]; day: OpenDay } | null>(null)
-  const openDay = openDayState?.days === instance.days ? openDayState.day : null
-  const handleDayOpen = useCallback(
-    (dayKey: string, trigger: HTMLElement): void => setOpenDayState({ days: instance.days, day: { dayKey, trigger, anchor: rectOf(trigger) } }),
-    [instance.days],
-  )
-  const handleDayClose = useCallback((): void => setOpenDayState(null), [])
+  const { openDay, openDayCard, closeDayCard } = useOpenDay(instance.days)
   const drag = useMonthDrag(instance, daysByKey)
 
   /**
@@ -214,8 +206,8 @@ export function MonthView<TData = unknown>({
             onEventHover={onEventHover}
             onCreateRequest={handleCreateRequest}
             openDay={openDay}
-            onDayOpen={handleDayOpen}
-            onDayClose={handleDayClose}
+            onDayOpen={openDayCard}
+            onDayClose={closeDayCard}
           />
         ))}
       </div>

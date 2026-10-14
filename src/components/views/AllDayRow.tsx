@@ -1,14 +1,17 @@
 import { classNames } from "../../core/classNames"
-import { fill } from "../../core/labels"
-import { eventLookClasses } from "../../core/looks"
-import { layoutSegments, limitRows, type Segment } from "../../core/spans"
+import { formatDateInput } from "../../core/format"
+import { layoutSegments, limitRows } from "../../core/spans"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
 import { useSlotClass } from "../classesContext"
-import { useIsLit } from "../litGroupContext"
-import { eventChipProps, type EventStyle } from "./TimedEvent"
+import { COMPACT_QUERY, useMediaQuery } from "../useMediaQuery"
+import { AllDayPill } from "./AllDayPill"
+import { DayEventsPopover } from "./DayEventsPopover"
+import { MonthMore } from "./MonthMore"
+import { segmentsOfColumn } from "./monthSegment"
+import { useOpenDay } from "./useOpenDay"
 
-/** How many bars stack before the rest collapse into "+N more". */
+/** How many bars stack before the rest collapse into a day's overflow dots. */
 const MAX_ALLDAY_ROWS = 3
 
 /** What {@link AllDayRow} draws. */
@@ -21,24 +24,15 @@ export interface AllDayRowProps<T> {
   onEventHover(event: CalendarEvent<T> | null, anchor: HTMLElement | null): void
 }
 
-/** One all-day pill, placed by CSS grid across the days it covers. */
-function pillStyle<T>(segment: Segment<T>, color: string): EventStyle {
-  return {
-    // +1 because CSS grid lines are 1-based; +2 on the end because `endCol` is
-    // inclusive and a grid end line sits after the track it closes.
-    gridColumn: `${segment.startCol + 1} / ${segment.endCol + 2}`,
-    gridRow: segment.row + 1,
-    "--cal-event-color": color,
-  }
-}
-
 /**
  * The strip above the time grid holding all-day and multi-day events.
  *
  * These cannot live on the time grid: they have no meaningful start minute and
  * a multi-day one would have to be cut into disconnected pieces. Laid out as
- * first-fit rows so a bar crossing a week stays one continuous pill, with the
- * overflow past three rows offered as a "+N more" drill-in per day.
+ * first-fit rows so a bar crossing a week stays one continuous pill. What does
+ * not fit in three rows is a day's overflow as the month draws it — a dot in
+ * each hidden event's colour, then "+N" ({@link MonthMore}) — and opens that
+ * day's card ({@link DayEventsPopover}) with every all-day event of the day.
  *
  * @param props - The instance, labels, the shared grid template, and the event callbacks.
  * @returns The all-day row.
@@ -53,11 +47,11 @@ export function AllDayRow<T>({ instance, labels, gridTemplateColumns, onEventOpe
   const hasOverflow = overflow.some((count) => count > 0)
   const usedRows = visible.reduce((rows, segment) => Math.max(rows, segment.row + 1), 0)
   const rowCount = Math.max(1, usedRows + (hasOverflow ? 1 : 0))
-
-  const handleDrillIn = (day: Date): void => {
-    instance.setDate(day)
-    instance.setView("day")
-  }
+  // A week's column on a phone holds two dots; the day view's one column has room for four.
+  const isCompact = useMediaQuery(COMPACT_QUERY) && days.length > 1
+  const { openDay, openDayCard, closeDayCard } = useOpenDay(days)
+  const openCol = openDay ? days.findIndex((day) => formatDateInput(day) === openDay.dayKey) : -1
+  const openDate = days[openCol]
 
   const rowSlotClass = useSlotClass("allDayRow")
   const eventSlotClass = useSlotClass("event")
@@ -86,60 +80,34 @@ export function AllDayRow<T>({ instance, labels, gridTemplateColumns, onEventOpe
         {overflow.map((count, column) => {
           const day = days[column]
           if (count === 0 || !day) return null
+          const dayKey = formatDateInput(day)
           return (
-            <button
-              key={day.getTime()}
-              type="button"
+            <MonthMore
+              key={dayKey}
               className="cal-allday-more"
-              style={{ gridColumn: column + 1, gridRow: rowCount }}
-              onClick={() => handleDrillIn(day)}
-            >
-              {fill(labels.more, { n: count })}
-            </button>
+              hidden={segmentsOfColumn(segments, column).filter((segment) => segment.row >= MAX_ALLDAY_ROWS)}
+              col={column}
+              row={rowCount - 1}
+              isOpen={openDay?.dayKey === dayKey}
+              compact={isCompact}
+              labels={labels}
+              instance={instance}
+              onOpen={(trigger) => openDayCard(dayKey, trigger)}
+            />
           )
         })}
       </div>
-    </div>
-  )
-}
-
-/** What one {@link AllDayPill} needs: its segment and the row's shared props. */
-interface AllDayPillProps<T> {
-  segment: Segment<T>
-  instance: CalendarInstance<T>
-  labels: CalendarLabels
-  onEventOpen(event: CalendarEvent<T>, anchor: HTMLElement): void
-  onEventHover(event: CalendarEvent<T> | null, anchor: HTMLElement | null): void
-  eventSlotClass: string | undefined
-}
-
-/** One all-day pill — its own component so it can read whether its record is lit. */
-function AllDayPill<T>({ segment, instance, labels, onEventOpen, onEventHover, eventSlotClass }: AllDayPillProps<T>) {
-  const isLit = useIsLit(segment.event.groupId)
-  return (
-    <div
-      className={classNames(
-        "cal-event",
-        "cal-allday-pill",
-        segment.continuesBefore && "cal-event-continues-before",
-        segment.continuesAfter && "cal-event-continues-after",
-        instance.pendingIds.has(segment.event.id) && "cal-event-pending",
-        segment.event.readOnly === true && "cal-event-readonly",
-        eventLookClasses(segment.event),
-        isLit && "cal-event-lit",
-        eventSlotClass,
-      )}
-      style={pillStyle(segment, instance.colorOf(segment.event))}
-      data-group={segment.event.groupId}
-      {...eventChipProps({
-        event: segment.event,
-        labels,
-        locale: instance.settings.locale,
-        onOpen: onEventOpen,
-        onHover: onEventHover,
-      })}
-    >
-      {segment.event.name || labels.untitled}
+      {openDay && openDate ? (
+        <DayEventsPopover
+          day={openDate}
+          segments={segmentsOfColumn(segments, openCol)}
+          anchor={openDay.anchor}
+          labels={labels}
+          instance={instance}
+          onClose={closeDayCard}
+          onEventOpen={(event) => onEventOpen(event, openDay.trigger)}
+        />
+      ) : null}
     </div>
   )
 }

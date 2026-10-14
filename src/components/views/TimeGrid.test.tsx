@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { addDays, startOfDay } from "../../core/date"
@@ -165,7 +165,38 @@ describe("TimeGrid", () => {
     expect(onEventOpen).toHaveBeenCalledWith(allDay, expect.any(HTMLElement))
   })
 
-  it("collapses all-day events past the third row into a +N more drill-in", () => {
+  it("collapses all-day events past the third row into a dot per hidden event, as the month does", () => {
+    const spans = [1, 2, 3, 4].map((n) =>
+      makeEvent({ id: `a${n}`, name: `Span ${n}`, start: new Date(2022, 2, 15), end: new Date(2022, 2, 16), allDay: true }),
+    )
+    renderGrid(makeInstance({ events: spans }))
+
+    const more = screen.getByRole("button", { name: "+1 more" })
+    expect(more).toHaveClass("cal-month-more", "cal-allday-more")
+    expect(more).toHaveAttribute("aria-haspopup", "dialog")
+    expect(more.querySelectorAll(".cal-month-more-dot")).toHaveLength(1)
+    expect(screen.queryByText("Span 4")).toBeNull()
+  })
+
+  it("opens the day's card on the all-day dots: every all-day event of the day, the hidden one too", () => {
+    const spans = [1, 2, 3, 4].map((n) =>
+      makeEvent({ id: `a${n}`, name: `Span ${n}`, start: new Date(2022, 2, 15), end: new Date(2022, 2, 16), allDay: true }),
+    )
+    const instance = makeInstance({ events: spans })
+    const { onEventOpen } = renderGrid(instance)
+
+    const more = screen.getByRole("button", { name: "+1 more" })
+    fireEvent.click(more)
+
+    const card = screen.getByRole("dialog", { name: /Tuesday,? 15 March/ })
+    expect(more).toHaveAttribute("aria-expanded", "true")
+    expect(within(card).getAllByRole("listitem")).toHaveLength(4)
+    fireEvent.click(within(card).getByText("Span 4"))
+    expect(onEventOpen).toHaveBeenCalledWith(spans[3], more)
+    expect(screen.queryByRole("dialog")).toBeNull()
+  })
+
+  it("opens the day view from the date on the all-day card", () => {
     const spans = [1, 2, 3, 4].map((n) =>
       makeEvent({ id: `a${n}`, name: `Span ${n}`, start: new Date(2022, 2, 15), end: new Date(2022, 2, 16), allDay: true }),
     )
@@ -173,6 +204,9 @@ describe("TimeGrid", () => {
     renderGrid(instance)
 
     fireEvent.click(screen.getByRole("button", { name: "+1 more" }))
+    // Within the card: the week's own head names its days the same way.
+    const card = screen.getByRole("dialog", { name: /Tuesday,? 15 March/ })
+    fireEvent.click(within(card).getByRole("button", { name: /Tuesday,? 15 March/ }))
 
     expect(instance.setDate).toHaveBeenCalledWith(new Date(2022, 2, 15))
     expect(instance.setView).toHaveBeenCalledWith("day")

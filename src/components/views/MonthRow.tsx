@@ -7,13 +7,13 @@ import { layoutSegments, limitRows, type Segment } from "../../core/spans"
 import type { CalendarInstance } from "../../instance"
 import type { CalendarEvent, CalendarLabels } from "../../types"
 import { useSlotClass } from "../classesContext"
-import type { AnchorRect } from "../Popover"
 import { useIsLit } from "../litGroupContext"
 import { DayEventsPopover } from "./DayEventsPopover"
 import { MonthCell, type CellAnchorRect } from "./MonthCell"
 import { MonthMore } from "./MonthMore"
 import { describeSegment, segmentsOfColumn } from "./monthSegment"
 import type { UseMonthDragResult } from "./useMonthDrag"
+import type { OpenDay } from "./useOpenDay"
 
 /** One week row: the days it covers and where it falls in the 6-row grid. */
 export interface MonthRowProps<TData = unknown> {
@@ -43,12 +43,6 @@ export interface MonthRowLimits {
   rowsBesideMore: number
 }
 
-/** A month day whose "+N" card is open: its key, and the button that opened it — the card's anchor and an opened event's. */
-export interface OpenDay {
-  dayKey: string
-  trigger: HTMLElement
-  anchor: AnchorRect
-}
 
 /** One event chip: a solid pill for a span, a coloured dot + time + name line for a single-day timed event. */
 function EventChip<TData>({

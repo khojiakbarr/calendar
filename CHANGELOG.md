@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 — 2026-10-14
+
+- The week's and the day's all-day strip shows its overflow as the month does: a dot in the colour of each all-day
+  event past its third row — four at most, two in a phone's week column — then "+N", and a click opens that day's
+  card with every all-day event of the day, the shown ones too. Its date still opens the day view, where "+N more"
+  used to go straight away. The button keeps the `more` label with the whole count as its name.
+- `useOpenDay` keeps the one open day card for both views, and `COMPACT_QUERY` (the phone width) is shared from
+  `useMediaQuery`; `AllDayPill` is its own file.
+
 ## 0.5.1 — 2026-10-13
 
 - A timed event under the pointer keeps its height. Hover widens it to the whole column and lets its words wrap, and
